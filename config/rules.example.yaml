@@ -1,0 +1,52 @@
+# Beispiel-Konfiguration für die Migration Engine.
+# Kopiere diese Datei nach rules.yaml und fülle sie mit den bestätigten
+# Regeln deines Projekts. rules.yaml selbst ist per .gitignore ausgeschlossen,
+# weil sie projektspezifische Bezeichner (Tabellen-IDs, Feldnamen, Einrichtungsnamen) enthält.
+
+database:
+  master: 0            # ID der führenden Zieldatenbank
+  master_name: ""
+  legacy: {}            # optional: veraltete/nicht produktive Datenbanken
+  import_infrastructure: {}  # optional: separate DB für Importinfrastruktur
+
+entities:
+  # Ein Eintrag pro Stammdatentabelle, die von einem Plugin bedient wird.
+  # Der Schlüssel muss dem ENTITY_NAME des zugehörigen Plugins entsprechen.
+  beispiel_entitaet:
+    table_id: 0
+    role: single_source_of_truth
+    allow_parallel_structures: false
+
+import:
+  schema_changes_via_mcp: false
+  schema_changes_require: manual_ui
+  batch_size: 50
+  batch_verification: row_count_after_each_batch
+  mode_detection: row_count_check_before_import
+  recommended_entity_order: []
+  protocol_required_fields:
+    - zieltabelle
+    - importtyp
+    - mapping_zusammenfassung
+    - dateiname
+    - anzahl_datensaetze
+
+mapping:
+  external_id:
+    target_field: "Externe [Entität]-ID"
+    never_use_internal_id_field: true
+  link_row_fields:
+    prefer_row_id_over_name: true
+    reason: "bei mehrdeutigen Namen ist Zeilen-ID-basiertes Verlinken sicherer"
+
+duplicate_detection: {}
+
+naming_rules: {}
+
+address_rules: {}
+
+relationships: {}
+
+quality_rules: {}
+
+defaults: {}

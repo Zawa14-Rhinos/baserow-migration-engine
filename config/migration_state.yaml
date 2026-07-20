@@ -1,0 +1,6 @@
+# Laufender Zustand der Migration (welche Entitäten wurden bereits importiert).
+# Wird von der Engine gelesen/geschrieben, sobald der Commit Workflow implementiert ist (Phase 2).
+# Vorerst nur Platzhalter-Struktur.
+
+entities: {}
+last_import: null

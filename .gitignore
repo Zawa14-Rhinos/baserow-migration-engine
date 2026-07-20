@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+.pytest_cache/
+build/
+dist/
+
+# Projektspezifische, private Konfiguration/Wissensbasis — nicht Teil der Engine.
+# Beispielvorlagen (*.example.*) bleiben getrackt.
+config/rules.yaml
+config/decision_log.md
+knowledge/knowledge.md
+
+# Secrets
+.env
+*.token
+credentials*

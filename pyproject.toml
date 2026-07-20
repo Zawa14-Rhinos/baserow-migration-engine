@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "baserow-migration-engine"
+version = "0.1.0"
+description = "Plugin-based engine for migrating master data into Baserow"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "pandas>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+migration = "migration_engine.cli:main"
+
+[tool.setuptools]
+packages = ["migration_engine", "plugins"]
