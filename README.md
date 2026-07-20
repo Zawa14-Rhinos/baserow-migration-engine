@@ -6,7 +6,7 @@ Ein generisches, Plugin-basiertes Werkzeug zur Migration von Stammdaten in [Base
 
 | Bestandteil | Zweck | Ändert sich |
 |---|---|---|
-| `migration_engine/` | generische Engine (CSV lesen, Plugin wählen, analysieren, Bericht erzeugen) | selten |
+| `migration_engine/` | generische Engine (CSV lesen, Plugin wählen, analysieren, Baserow-Schema lesen, Bericht erzeugen) | selten |
 | `plugins/` | eine Datei je Datenquelle/Entität (Spalten, entitätsspezifische Prüfungen) | pro neuer Datenquelle |
 | `config/rules.yaml` | maschinenlesbare, bestätigte fachliche Regeln deines Projekts | regelmäßig |
 | `knowledge/knowledge.md` | Lessons Learned aus abgeschlossenen Importen | nach jedem Import |
@@ -44,6 +44,48 @@ Import möglich.
 ```
 
 `migration commit` ist bewusst noch nicht implementiert — das ist der nächste Meilenstein (siehe Roadmap).
+
+## Baserow-Schema lesen (read-only)
+
+`migration schema` verbindet sich mit der Baserow API und liest das komplette Schema einer Datenbank (Tabellen, Felder, Beziehungen) — **ausschließlich lesend, keine Schreibzugriffe**.
+
+Konfiguration erfolgt ausschließlich über Umgebungsvariablen, niemals über Dateien im Repository:
+
+| Variable | Pflicht | Bedeutung |
+|---|---|---|
+| `BASEROW_API_TOKEN` | ja | API-Token aus Baserow → Einstellungen → API-Tokens |
+| `BASEROW_API_URL` | nein | Standard: `https://api.baserow.io`; bei selbstgehosteten Instanzen anpassen |
+| `BASEROW_DATABASE_ID` | nein* | Ziel-Datenbank; alternativ `--database-id` beim Aufruf |
+
+\* eine der beiden Quellen (Umgebungsvariable oder `--database-id`) muss die Datenbank-ID liefern.
+
+```bash
+export BASEROW_API_TOKEN="..."
+export BASEROW_DATABASE_ID=123
+
+migration schema
+```
+
+```
+✔ Verbindung erfolgreich
+
+12 Tabellen gefunden
+
+10 Kontakte
+ • 8 Felder
+ • 1 LinkRow-Felder
+
+20 Firmen
+ • 6 Felder
+
+...
+
+5 Beziehungen (LinkRow-Verknüpfungen) gefunden
+ • Kontakte (10) --[Firma]--> 20
+ ...
+```
+
+Der Client bricht bei Authentifizierungsfehlern (401/403) und nicht gefundenen Ressourcen (404) sofort ab; bei temporären Fehlern (5xx, 429, Netzwerkfehler) versucht er es mit exponentiellem Backoff automatisch erneut, bevor er endgültig fehlschlägt.
 
 ## Eigenes Plugin ergänzen
 

@@ -30,6 +30,10 @@ Deutlich reduzierter Tool- und Tokenaufwand; höhere Ausführungsgeschwindigkeit
 **Offene Risiken**
 Fehlerhafte oder unvollständige Regeln wirken sich jetzt direkt automatisiert aus statt vorab im Chat aufzufallen; Notwendigkeit robuster Validierung vor jedem automatisierten Schreibvorgang; Aufwand für Wartung der Python-Engine.
 
+**Fortschritt**
+- ✅ 2.1 Baserow Read API: `migration_engine/baserow.py` (Client mit Token-Auth, Retry/Backoff, typisierten Fehlern), `migration_engine/schema.py` (internes Schema-Modell: Tabellen, Felder, Beziehungen/LinkRow, Select/Mehrfachauswahl/Datum/Zahl/Boolean), CLI-Befehl `migration schema`. Ausschließlich Lesezugriffe (nur GET), Konfiguration ausschließlich über Umgebungsvariablen (`BASEROW_API_TOKEN`, `BASEROW_API_URL`, `BASEROW_DATABASE_ID`), keine Zugangsdaten im Repository.
+- ⏳ noch offen: Mapping, Dublettenprüfung, Commit/Schreibzugriffe, Beziehungen schreiben, Importprotokoll.
+
 ## Phase 3 – Produktivbetrieb
 
 **Ziele**

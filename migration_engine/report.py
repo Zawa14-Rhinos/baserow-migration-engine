@@ -1,4 +1,5 @@
 from migration_engine.quality import AnalysisReport
+from migration_engine.schema import DatabaseSchema
 
 
 def format_report(report: AnalysisReport) -> str:
@@ -26,3 +27,29 @@ def format_report(report: AnalysisReport) -> str:
     lines.append("")
     lines.append("Import möglich." if report.import_possible else "Import NICHT möglich — fehlende Pflichtspalten zuerst klären.")
     return "\n".join(lines)
+
+
+def format_schema_report(schema: DatabaseSchema) -> str:
+    lines = ["✔ Verbindung erfolgreich", "", f"{len(schema.tables)} Tabellen gefunden", ""]
+
+    for table in schema.tables:
+        lines.append(f"{table.id} {table.name}")
+        lines.append(f" • {len(table.fields)} Felder")
+        if table.link_row_fields:
+            lines.append(f" • {len(table.link_row_fields)} LinkRow-Felder")
+        if table.select_fields:
+            lines.append(f" • {len(table.select_fields)} Select-Felder ({len(table.multiple_select_fields)} davon Mehrfachauswahl)")
+        if table.date_fields:
+            lines.append(f" • {len(table.date_fields)} Datumsfelder")
+        if table.number_fields:
+            lines.append(f" • {len(table.number_fields)} Zahlenfelder")
+        if table.boolean_fields:
+            lines.append(f" • {len(table.boolean_fields)} Boolesche Felder")
+        lines.append("")
+
+    relationships = schema.relationships
+    lines.append(f"{len(relationships)} Beziehungen (LinkRow-Verknüpfungen) gefunden")
+    for edge in relationships:
+        lines.append(f" • {edge.source_table_name} ({edge.source_table_id}) --[{edge.field_name}]--> {edge.target_table_id}")
+
+    return "\n".join(lines).rstrip() + "\n"
