@@ -1,0 +1,1104 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schiedsrichterkosten-Rechner</title>
+<style>
+  :root {
+    --bg: #F2F4F1; --surface: #FFFFFF; --surface-2: #F7F8F5;
+    --ink: #15181A; --muted: #5B6570; --line: #D9DED8;
+    --accent: #B34A16; --accent-soft: #F6E7DC;
+    --good: #276B4C; --warn: #8A5A00;
+    --shadow: 0 1px 2px rgba(20,24,20,.06), 0 8px 24px -12px rgba(20,24,20,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121517; --surface: #1A1E21; --surface-2: #212629;
+      --ink: #ECEFEA; --muted: #98A2AC; --line: #2C3338;
+      --accent: #FF8B4C; --accent-soft: #35251B;
+      --good: #6BC79B; --warn: #E0A93F;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121517; --surface: #1A1E21; --surface-2: #212629;
+    --ink: #ECEFEA; --muted: #98A2AC; --line: #2C3338;
+    --accent: #FF8B4C; --accent-soft: #35251B;
+    --good: #6BC79B; --warn: #E0A93F;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+  /* Elemente mit eigener display-Regel (.adrbox, .tagesliste ...) wuerden das
+     hidden-Attribut sonst ueberstimmen und leer stehen bleiben. */
+  [hidden] { display: none !important; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px; line-height: 1.5;
+    padding: 0 0 7.5rem;
+  }
+  .wrap { max-width: 34rem; margin: 0 auto; padding: 1.25rem 1rem 0; display: flex; flex-direction: column; gap: 1rem; }
+  .num { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  header h1 { font-size: 1.5rem; line-height: 1.2; margin: 0 0 .25rem; letter-spacing: -.02em; text-wrap: balance; }
+  header p { margin: 0; color: var(--muted); font-size: .9rem; }
+
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+  .step > .head { display: flex; align-items: baseline; gap: .6rem; padding: .85rem 1rem; border-bottom: 1px solid var(--line); }
+  .step > .head .k { font-family: ui-monospace, monospace; font-size: .78rem; color: var(--accent); font-weight: 700; }
+  .step > .head h2 { margin: 0; font-size: .95rem; letter-spacing: .01em; font-weight: 650; }
+  .step .body { padding: 1rem; display: flex; flex-direction: column; gap: .8rem; }
+  .step[hidden] { display: none; }
+
+  label { display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .3rem; }
+  input, select, button { font: inherit; color: inherit; }
+  input[type="text"], input[type="number"], select {
+    width: 100%; padding: .6rem .7rem; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 9px;
+  }
+  input:focus-visible, select:focus-visible, button:focus-visible, li[tabindex]:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  ul.results { list-style: none; margin: .2rem 0 0; padding: 0; max-height: 22rem; overflow-y: auto; display: flex; flex-direction: column; gap: .3rem; }
+  ul.results li { padding: .55rem .7rem; border: 1px solid var(--line); border-radius: 9px; cursor: pointer; background: var(--surface-2); }
+  ul.results li:hover { border-color: var(--accent); }
+  ul.results .l1 { font-weight: 600; font-size: .93rem; }
+  ul.results .l2 { color: var(--muted); font-size: .8rem; }
+  .empty { color: var(--muted); font-size: .88rem; padding: .3rem 0; }
+
+  .game { display: flex; flex-direction: column; gap: .15rem; }
+  .game .t { font-size: 1.05rem; font-weight: 650; letter-spacing: -.01em; }
+  .game .m { color: var(--muted); font-size: .88rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .45rem; }
+  .tag { font-size: .75rem; padding: .2rem .5rem; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); }
+  .tag.rate { background: var(--accent-soft); border-color: transparent; color: var(--accent); font-weight: 600; }
+  .tag.warn { border-color: var(--warn); color: var(--warn); font-weight: 600; }
+
+  .segmented { display: flex; gap: .4rem; }
+  .segmented button {
+    flex: 1; padding: .5rem; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 9px; cursor: pointer;
+  }
+  .segmented button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+  .rollen { margin-top: .7rem; }
+  .rollen button { font-size: .88rem; }
+  .nurdruck { display: none; }
+  .tagesliste { display: flex; flex-direction: column; gap: .35rem; }
+  .tagesliste .zeile { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem;
+    padding: .45rem .7rem; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); font-size: .85rem; }
+  .tagesliste .zeile .w { min-width: 0; }
+  .tagesliste .zeile .b { font-weight: 600; white-space: nowrap; }
+  .ref { border: 1px solid var(--line); border-radius: 11px; padding: .8rem; display: flex; flex-direction: column; gap: .7rem; background: var(--surface-2); }
+  .ref h3 { margin: 0; font-size: .82rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .row { display: flex; gap: .6rem; }
+  .row > * { flex: 1; min-width: 0; }
+  .check { display: flex; gap: .55rem; align-items: flex-start; font-size: .87rem; line-height: 1.35; }
+  .check input { margin-top: .2rem; flex: none; }
+  a.maps { display: inline-block; font-size: .82rem; color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+  a.maps[aria-disabled="true"] { color: var(--muted); pointer-events: none; border-color: transparent; }
+
+  .total { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px -18px rgba(0,0,0,.5); }
+  .total .inner { max-width: 34rem; margin: 0 auto; padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .total .lbl { font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .total .sum { font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; }
+  .total .split { font-size: .8rem; color: var(--muted); text-align: right; }
+  .total.zero .sum { color: var(--good); font-size: 1.1rem; font-weight: 600; }
+
+  .note { font-size: .84rem; color: var(--muted); line-height: 1.5; }
+  .note strong { color: var(--ink); font-weight: 600; }
+  details.help { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  details.help summary { padding: .8rem 1rem; cursor: pointer; font-size: .9rem; font-weight: 600; }
+  details.help .body { padding: 0 1rem 1rem; display: flex; flex-direction: column; gap: .6rem; }
+  details.help ul { margin: 0; padding-left: 1.1rem; }
+  details.help li { margin-bottom: .35rem; font-size: .87rem; color: var(--muted); }
+  textarea { width: 100%; padding: .6rem .7rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; font: inherit; color: inherit; resize: vertical; }
+  footer { text-align: center; font-size: .76rem; color: var(--muted); padding: .5rem 0 1rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .printbtn { padding: .65rem 1rem; border-radius: 9px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+  .printbtn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+  .hint { font-size: .78rem; color: var(--good); margin-top: .3rem; }
+  .adrbox { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .5rem .7rem; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); font-size: .88rem; }
+  .linkbtn { background: none; border: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-size: .82rem; padding: 0; }
+  details.frei { border-top: 1px solid var(--line); padding-top: .7rem; }
+  details.frei summary { cursor: pointer; font-size: .85rem; color: var(--accent); }
+  details.frei .freibody { display: flex; flex-direction: column; gap: .7rem; padding-top: .7rem; }
+  .beleg { border: 1px solid var(--line); border-radius: 11px; padding: .85rem; background: var(--surface-2); font-size: .87rem; }
+  .beleg h4 { margin: 0 0 .5rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .beleg dl { display: grid; grid-template-columns: auto 1fr; gap: .25rem .8rem; margin: 0; }
+  .beleg dt { color: var(--muted); }
+  .beleg dd { margin: 0; text-align: right; }
+  .beleg .gesamt { border-top: 1px solid var(--line); margin-top: .55rem; padding-top: .5rem; display: flex; justify-content: space-between; font-weight: 700; }
+  .sigpad { margin-top: .9rem; }
+  .sigpad canvas { width: 100%; height: 92px; border: 1px dashed var(--line); border-radius: 8px; background: var(--surface); touch-action: none; display: block; }
+  .sigrow { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin-top: .3rem; font-size: .76rem; color: var(--muted); }
+  .sigrow .clear { background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: .76rem; padding: 0; }
+  @media (prefers-reduced-motion: no-preference) { .step, .ref { transition: border-color .15s ease; } }
+  @media print {
+    body { background: #fff; color: #000; padding: 0; }
+    .wrap > header, #s1, .step:not(#s4), details.help, .total, .actions, .note, footer { display: none !important; }
+    #s4 { border: 0; box-shadow: none; }
+    #s4 > .head { display: none; }
+    .beleg { background: #fff; border: 1px solid #999; page-break-inside: avoid; margin-bottom: .6rem; }
+    .beleg dt, .sigrow { color: #444; }
+    .sigpad canvas { border: 1px solid #999; background: #fff; }
+    .sigrow .clear { display: none; }
+    #erstattung, #tagesliste, #weiter { display: none !important; }
+    .nurdruck { display: block !important; }
+    #erstattungDruck { background: #fff; border: 1px solid #999; page-break-inside: avoid; }
+    #erstattungDruck.leer { display: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1 id="h1">Was kosten die Schiedsrichter?</h1>
+    <p id="intro">Spiel auswählen, Lizenzstufen eintragen — du siehst sofort, wie viel Bargeld du mitnehmen musst.</p>
+    <div class="segmented rollen" id="rolle" role="group" aria-label="Wer rechnet ab?">
+      <button type="button" data-r="trainer" aria-pressed="true">Ich zahle aus</button>
+      <button type="button" data-r="sr" aria-pressed="false">Ich pfeife</button>
+    </div>
+  </header>
+
+  <section class="step">
+    <div class="head"><span class="k">1</span><h2>Spiel finden</h2></div>
+    <div class="body">
+      <div class="row">
+        <div style="flex:2">
+          <label for="q">Spielnummer, Gegner, Team oder Datum</label>
+          <input type="text" id="q" placeholder="z. B. 5, Weißenfels oder 26.09." autocomplete="off">
+        </div>
+        <div>
+          <label for="monat">Monat</label>
+          <select id="monat"><option value="">kommende Spiele</option></select>
+        </div>
+      </div>
+      <ul class="results" id="results"></ul>
+      <details class="frei">
+        <summary>Spiel nicht dabei? Spielklasse direkt wählen</summary>
+        <div class="freibody">
+          <p class="note">Für jedes Spiel im BVSA — auch Pokal, Turnier oder eine Liga, die nicht in unserem Spielplan steht.</p>
+          <div class="row">
+            <div>
+              <label for="ebene">Spielebene</label>
+              <select id="ebene">
+                <option value="">bitte wählen</option>
+                <optgroup label="Jugend">
+                  <option value="j-land">Landes-/Oberliga-Ebene (inkl. YSO)</option>
+                  <option value="j-bez">Bezirks-/Territorialebene</option>
+                  <option value="j-mdl">Mitteldeutsche Liga (MDL)</option>
+                </optgroup>
+                <optgroup label="Erwachsene">
+                  <option value="e-bezirk">Bezirksliga</option>
+                  <option value="e-landes">Landesliga</option>
+                  <option value="e-ober">Oberliga</option>
+                  <option value="e-oberpo">Oberliga Play-offs</option>
+                  <option value="e-senior">Seniorenliga / Bestenermittlung</option>
+                  <option value="e-pokal">Pokal HF/Finale mit RL-Beteiligung</option>
+                </optgroup>
+              </select>
+            </div>
+            <div id="alterBox">
+              <label for="alter">Altersklasse</label>
+              <select id="alter">
+                <option value="20">U20</option>
+                <option value="19">U19</option>
+                <option value="18">U18</option>
+                <option value="17">U17</option>
+                <option value="16">U16</option>
+                <option value="15">U15</option>
+                <option value="14" selected>U14</option>
+                <option value="13">U13</option>
+                <option value="12">U12</option>
+                <option value="11">U11</option>
+                <option value="10">U10 und jünger</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="geschlecht">Mannschaft</label>
+              <select id="geschlecht">
+                <option value="m">männlich</option>
+                <option value="w">weiblich</option>
+                <option value="x">mixed</option>
+              </select>
+            </div>
+            <div>
+              <label for="fliga">Liga laut Spielplan</label>
+              <input type="text" id="fliga" placeholder="optional, z. B. Bezirksliga Halle" autocomplete="off">
+            </div>
+          </div>
+          <p class="note" id="satzInfo">Erst Spielebene wählen — Altersklasse und Mannschaft bestimmen mit, welcher Satz gilt.</p>
+          <div class="row">
+            <div><label for="fpaar">Paarung</label><input type="text" id="fpaar" placeholder="Heim – Gast" autocomplete="off"></div>
+            <div><label for="fnr">Spielnummer</label><input type="text" id="fnr" placeholder="optional" autocomplete="off"></div>
+          </div>
+          <div class="row">
+            <div><label for="fdatum">Datum</label><input type="date" id="fdatum"></div>
+            <div><label for="fhalle">Halle</label><input type="text" id="fhalle" placeholder="Halle/Anschrift" autocomplete="off"></div>
+          </div>
+          <button type="button" id="freiOk" class="printbtn">Übernehmen</button>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="step" id="s2" hidden>
+    <div class="head"><span class="k">2</span><h2>Spiel</h2></div>
+    <div class="body">
+      <div class="game" id="game"></div>
+      <div class="tags" id="tags"></div>
+    </div>
+  </section>
+
+  <section class="step" id="s3" hidden>
+    <div class="head"><span class="k">3</span><h2>Schiedsrichter</h2></div>
+    <div class="body">
+      <div>
+        <label id="countLabel">Wie viele Schiedsrichter sind angesetzt?</label>
+        <div class="segmented" id="count">
+          <button type="button" data-n="2" aria-pressed="true">2 Schiedsrichter</button>
+          <button type="button" data-n="1" aria-pressed="false">nur einer</button>
+        </div>
+      </div>
+      <div id="refs" style="display:flex;flex-direction:column;gap:.7rem"></div>
+      <p class="note" id="oneNote" hidden></p>
+    </div>
+  </section>
+
+  <section class="step" id="s4" hidden>
+    <div class="head"><span class="k">4</span><h2>Quittung</h2></div>
+    <div class="body">
+      <div class="tagesliste" id="tagesliste" hidden></div>
+      <p class="note" id="q4note">Je Schiedsrichter und Spiel eine Quittung — mit Lizenzstufe und Kilometern, damit der Betrag später nachvollziehbar ist. Unterschreiben lassen und mit der Abrechnung einreichen.</p>
+      <div id="quittungen" style="display:flex;flex-direction:column;gap:.7rem"></div>
+
+      <div class="ref" id="erstattung">
+        <h3 id="erstattungTitel">Erstattung an mich</h3>
+        <p class="note" id="erstattungNote">Damit der USV das ausgelegte Geld zurücküberweisen kann. Steht nur auf deinem Ausdruck, nicht auf der Quittung des Schiedsrichters.</p>
+        <div>
+          <label for="ibanName">Kontoinhaber</label>
+          <input type="text" id="ibanName" placeholder="Vor- und Nachname" autocomplete="off">
+        </div>
+        <div>
+          <label for="iban">IBAN</label>
+          <input type="text" id="iban" placeholder="DE00 0000 0000 0000 0000 00" autocomplete="off" spellcheck="false" maxlength="42">
+          <div class="hint" id="ibanHint"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="ibanMerk">
+          <span>Kontodaten auf diesem Gerät merken — sie bleiben lokal und sind nicht Teil dieser Seite</span></label>
+      </div>
+
+      <div class="beleg nurdruck" id="erstattungDruck"></div>
+
+      <div class="actions">
+        <button type="button" id="weiter" class="printbtn ghost">Weiteres Spiel am selben Tag</button>
+        <button type="button" id="print" class="printbtn">Drucken / als PDF sichern</button>
+        <button type="button" id="copy" class="printbtn ghost">Text kopieren</button>
+        <a id="mail" class="printbtn" href="#" hidden>Unterschrieben einreichen</a>
+      </div>
+      <p class="note" id="copyOk" hidden>Kopiert — du kannst es jetzt in WhatsApp oder eine Mail einfügen.</p>
+      <p class="note" id="tabletNote"><strong>So läuft es am Tablet:</strong> Schiedsrichter unterschreibt direkt im Feld → „Drucken / als PDF sichern“ → „Unterschrieben einreichen“ öffnet die Mail, PDF anhängen und abschicken.</p>
+      <p class="note"><strong>Doppelansetzung:</strong> Pfeift jemand zwei Spiele hintereinander, „Weiteres Spiel am selben Tag“ tippen. Name, Lizenz und Adresse bleiben stehen, die Fahrtkosten setzt der Rechner beim zweiten Spiel automatisch auf null — am Ende kommen alle Quittungen in einem PDF.</p>
+    </div>
+  </section>
+
+  <details class="help" id="profilBox" hidden>
+    <summary>Meine Daten als Schiedsrichter</summary>
+    <div class="body">
+      <p class="note">Einmal ausfüllen — danach genügt Spiel auswählen und unterschreiben. Bleibt auf diesem Gerät.</p>
+      <div class="row">
+        <div><label for="pName">Name</label><input type="text" id="pName" placeholder="Vor- und Nachname" autocomplete="off"></div>
+        <div><label for="pLic">Lizenzstufe</label>
+          <select id="pLic"><option value="lse">LSE</option><option value="lsd">LSD</option><option value="lsc">LSC oder höher</option></select></div>
+      </div>
+      <div><label for="pAdr">Wohnanschrift (für die Kilometer)</label><input type="text" id="pAdr" placeholder="Straße, PLZ Ort" autocomplete="off"></div>
+      <div class="actions"><button type="button" id="pSpeichern" class="printbtn">Speichern</button>
+        <button type="button" id="pLoeschen" class="printbtn ghost">Löschen</button></div>
+      <p class="note"><strong>Bleibt auf diesem Gerät.</strong> Auf der Quittung erscheint von der Anschrift nur die Postleitzahl.</p>
+    </div>
+  </details>
+
+  <details class="help" id="listeBox">
+    <summary>Schiedsrichter-Liste auf diesem Gerät (<span id="listeAnzahl">0</span>)</summary>
+    <div class="body">
+      <p class="note">Einmal eintragen, dann genügt der Anfang des Namens — Lizenzstufe und Postleitzahl füllen sich von selbst. Eine Zeile je Person: <strong>Name; Lizenz; PLZ</strong>, zum Beispiel <span class="num">Mustermann, Max; LSD; 06110</span>. Die Lizenzstufe steht in der Fortbildungsliste, die Postleitzahl in TeamSL unter „Schiedsrichter-Adressen“.</p>
+      <textarea id="listeText" rows="5" placeholder="Mustermann, Max; LSD; 06110&#10;Beispiel, Erika; LSE; 06849"></textarea>
+      <div class="actions">
+        <button type="button" id="listeSpeichern" class="printbtn">Liste übernehmen</button>
+        <button type="button" id="listeLoeschen" class="printbtn ghost">Liste löschen</button>
+      </div>
+      <p class="note"><strong>Bleibt auf diesem Gerät.</strong> Die Liste wird weder hochgeladen noch ist sie Teil dieser Seite — sie liegt nur im Speicher dieses Browsers. Telefonnummern und E-Mail-Adressen der Schiedsrichter gehören hier nicht hinein.</p>
+    </div>
+  </details>
+
+  <details class="help">
+    <summary>Was du an der Halle beachten musst</summary>
+    <div class="body">
+      <ul>
+        <li><strong>Bar vor Spielbeginn</strong> auszahlen — Gebühr und Fahrtkosten zusammen.</li>
+        <li><strong>Quittung ausfüllen</strong> und die Lizenzstufe unter „Sonstiges“ notieren. Nur so wird unsere Planung mit der Zeit genauer.</li>
+        <li>Kommt ein Schiedsrichter <strong>nicht 20 Minuten vor Anwurf in Schiedsrichterkleidung</strong> in die Halle, darfst du die Gebühr um 50 % kürzen.</li>
+        <li>Jeder Schiedsrichter wird <strong>nach seiner eigenen Lizenz</strong> bezahlt — auch wenn die beiden unterschiedliche Stufen haben.</li>
+        <li><strong>Fahrtkosten nur einmal:</strong> Wer direkt davor schon in derselben Halle gepfiffen hat, bekommt für das zweite Spiel keine Fahrtkosten mehr.</li>
+        <li><strong>Postleitzahl nachschlagen:</strong> in TeamSL unter „Schiedsrichter-Adressen“ (Login nötig, Suche über Vor- <em>und</em> Nachname oder die Lizenznummer).</li>
+        <li><strong>Adressen bleiben auf deinem Tablet.</strong> Einmal eingetragen, siehst du beim nächsten Mal nur noch die Postleitzahl — auf der Quittung steht ebenfalls nur sie. Kommt jemand von woanders, „andere Adresse“ tippen.</li>
+        <li><strong>Tagegeld</strong> gibt es erst ab 8 Stunden Abwesenheit — bei einem normalen Heimspiel also nicht.</li>
+        <li>Kilometer gelten laut Google Maps, Route <strong>Wohnort → Halle → Wohnort</strong>, kürzeste Strecke. Der Rechner öffnet sie dir vorbereitet.</li>
+      </ul>
+    </div>
+  </details>
+
+  <footer id="foot"></footer>
+</div>
+
+<datalist id="srnamen"></datalist>
+
+<div class="total" id="total" hidden>
+  <div class="inner">
+    <div>
+      <div class="lbl" id="lbl">Bargeld mitnehmen</div>
+      <div class="sum num" id="sum">—</div>
+    </div>
+    <div class="split num" id="split"></div>
+  </div>
+</div>
+
+<script>
+const DATEN = {"stand": "17.08.2026", "einreichenMail": "info@usv-halle-basketball.de", "spiele": [{"nr": 9606, "datum": "2026-09-05", "zeit": "10:00", "team": "mU16 III", "gegner": "USC Leipzig 2", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 2, "datum": "2026-09-05", "zeit": "12:30", "team": "mU17 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga mU17 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-09-12", "zeit": "09:00", "team": "", "gegner": "Turnier", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 12, "datum": "2026-09-12", "zeit": "10:00", "team": "wU14", "gegner": "BG GM Panthers QLB/HBS (aK)", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 3, "datum": "2026-09-13", "zeit": "10:00", "team": "wU16 II", "gegner": "BBV Leipzig Eagles", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-09-13", "zeit": "12:00", "team": "mU16 I", "gegner": "BBC Halle II", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-09-19", "zeit": "00:00", "team": "4. Herren", "gegner": "Spielfrei", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 4, "datum": "2026-09-19", "zeit": "10:00", "team": "wU14", "gegner": "Ladybaskets Jena (Gast)", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9502, "datum": "2026-09-19", "zeit": "10:00", "team": "wU16 II", "gegner": "Limbacher Füchse 2", "liga": "Bezirksliga Leipzig U16 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 4, "datum": "2026-09-19", "zeit": "13:00", "team": "2. Herren", "gegner": "VfL Kalbe (Milde)", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 3, "datum": "2026-09-19", "zeit": "17:00", "team": "5. Herren", "gegner": "Justabs Halle II", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 4, "datum": "2026-09-20", "zeit": "10:00", "team": "mU12 I", "gegner": "SV Halle I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 10, "datum": "2026-09-26", "zeit": "10:00", "team": "mU14", "gegner": "SV Zörbig I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 8, "datum": "2026-09-26", "zeit": "15:00", "team": "3. Herren", "gegner": "SSV Einheit Weißenfels I", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 1, "datum": "2026-09-26", "zeit": "17:30", "team": "USV Halle I", "gegner": "USV Halle II", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5012, "datum": "2026-09-26", "zeit": "18:00", "team": "1. Herren", "gegner": "DBV Charlottenburg 2", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-09-27", "zeit": "00:00", "team": "mU12 (Kooperation MDL)", "gegner": "ChemCats Chemnitz", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 8, "datum": "2026-09-27", "zeit": "10:00", "team": "wU16 II", "gegner": "SV Halle", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 8, "datum": "2026-09-27", "zeit": "10:00", "team": "mU12 II", "gegner": "SV Großkayna", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 8, "datum": "2026-09-27", "zeit": "12:30", "team": "mU16 II", "gegner": "SV Halle (aK)", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-09-27", "zeit": "14:30", "team": "2. Damen", "gegner": "Leipzig Lakers 3", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9208, "datum": "2026-09-27", "zeit": "15:00", "team": "2. Damen", "gegner": "Leipzig Lakers 5", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9618, "datum": "2026-10-03", "zeit": "10:00", "team": "mU16 III", "gegner": "SC Eintracht Schkeuditz", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-10-04", "zeit": "00:00", "team": "mU16 I", "gegner": "BBC Halle II", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-10-04", "zeit": "09:00", "team": "wU14", "gegner": "BG GM Panthers QLB/HBS (aK)", "liga": "Landesliga weiblich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-10-04", "zeit": "12:30", "team": "mU18", "gegner": "BG GM Panthers QLB/HBS", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-10-10", "zeit": "10:00", "team": "mU17 (Kooperation MDL)", "gegner": "BIG Gotha", "liga": "Mitteldeutsche Liga mU17 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-10-10", "zeit": "11:00", "team": "USV Halle II", "gegner": "Justabs Halle", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-10-10", "zeit": "13:00", "team": "2. Herren", "gegner": "Börde Bisons Magdeburg", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 20, "datum": "2026-10-10", "zeit": "15:30", "team": "mU14", "gegner": "BBC Stendal I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 5024, "datum": "2026-10-10", "zeit": "18:00", "team": "1. Herren", "gegner": "RSV Eintracht 1949 2", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 3, "datum": "2026-10-11", "zeit": "10:00", "team": "USV Halle", "gegner": "BBC Red Eagles Zerbst", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 12, "datum": "2026-10-11", "zeit": "12:30", "team": "mU12 I", "gegner": "BBC Stendal I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 6, "datum": "2026-10-11", "zeit": "15:30", "team": "mU14", "gegner": "MBC Weißenfels II", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9, "datum": "2026-10-16", "zeit": "00:00", "team": "5. Herren", "gegner": "Topnados Halle", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2026-10-17", "zeit": "14:00", "team": "5. Herren", "gegner": "Topnados Halle", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 4, "datum": "2026-10-31", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "Team Ostthüringen", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-10-31", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "Team Jena/Weimar", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9, "datum": "2026-11-01", "zeit": "10:00", "team": "wU16 II", "gegner": "Limbacher Füchse", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 2, "datum": "2026-11-01", "zeit": "12:30", "team": "USV Halle", "gegner": "Leipzig Lakers", "liga": "Jugendoberliga U18 weiblich", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 20, "datum": "2026-11-07", "zeit": "10:00", "team": "wU14", "gegner": "BSW Sixers", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9630, "datum": "2026-11-07", "zeit": "12:30", "team": "mU16 III", "gegner": "BBV Wurzen", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-11-07", "zeit": "15:00", "team": "mU12 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 7, "datum": "2026-11-07", "zeit": "17:00", "team": "USV Halle I", "gegner": "Justabs Halle", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 14, "datum": "2026-11-07", "zeit": "17:30", "team": "4. Herren", "gegner": "Schkopau Baskets", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5036, "datum": "2026-11-07", "zeit": "18:00", "team": "1. Herren", "gegner": "ALBA BERLIN Basketballteam 2", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 16, "datum": "2026-11-08", "zeit": "00:00", "team": "mU12 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 16, "datum": "2026-11-08", "zeit": "00:00", "team": "3. Herren", "gegner": "spielfrei", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 16, "datum": "2026-11-08", "zeit": "00:00", "team": "wU16 II", "gegner": "spielfrei", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 16, "datum": "2026-11-08", "zeit": "10:00", "team": "mU16 II", "gegner": "Aschersleben Tigers BC", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9218, "datum": "2026-11-08", "zeit": "12:30", "team": "2. Damen", "gegner": "Dresden Urbanics", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9223, "datum": "2026-11-14", "zeit": "00:00", "team": "2. Damen", "gegner": "Gegner offen", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 30, "datum": "2026-11-14", "zeit": "10:00", "team": "mU14", "gegner": "USC Magdeburg I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 20, "datum": "2026-11-14", "zeit": "13:00", "team": "2. Herren", "gegner": "USC Magdeburg I", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 22, "datum": "2026-11-14", "zeit": "15:30", "team": "mU17 (Kooperation MDL)", "gegner": "Humanas Rookie Academy", "liga": "Mitteldeutsche Liga mU17 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 18, "datum": "2026-11-14", "zeit": "18:00", "team": "4. Herren", "gegner": "BBC Halle II", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 15, "datum": "2026-11-20", "zeit": "00:00", "team": "5. Herren", "gegner": "BBC Halle IV", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-11-21", "zeit": "10:00", "team": "mU18", "gegner": "SSV Einheit Weißenfels", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 28, "datum": "2026-11-21", "zeit": "10:00", "team": "wU14", "gegner": "1. Magdeburger BC", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 10, "datum": "2026-11-21", "zeit": "12:30", "team": "USV Halle I", "gegner": "BSW Sixers", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-11-21", "zeit": "12:30", "team": "mU16 I", "gegner": "SV Großkayna", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-11-21", "zeit": "14:30", "team": "5. Herren", "gegner": "BBC Halle IV", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-11-21", "zeit": "15:00", "team": "USV Halle II", "gegner": "SC Osterwieck", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5048, "datum": "2026-11-21", "zeit": "18:00", "team": "1. Herren", "gegner": "KINGS&QUEENS Basketball Potsdam", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 13, "datum": "2026-11-28", "zeit": "10:00", "team": "mU11 (Kooperation MDL)", "gegner": "BSW Sixers", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 40, "datum": "2026-11-28", "zeit": "10:00", "team": "mU14", "gegner": "BSW Sixers I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-11-28", "zeit": "13:00", "team": "2. Herren", "gegner": "BG GutsMuths Panthers QLB/HBS I", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 15, "datum": "2026-11-28", "zeit": "15:00", "team": "mU11 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 20, "datum": "2026-11-29", "zeit": "00:00", "team": "mU12 I", "gegner": "SV Zörbig I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 8, "datum": "2026-11-29", "zeit": "10:00", "team": "USV Halle", "gegner": "MBC Weißenfels", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 12, "datum": "2026-11-29", "zeit": "12:00", "team": "mU14", "gegner": "SV Halle", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 15, "datum": "2026-11-29", "zeit": "12:30", "team": "wU16 II", "gegner": "BC Dresden", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 28, "datum": "2026-11-29", "zeit": "15:00", "team": "2. Herren", "gegner": "BG GutsMuths Panthers QLB/HBS I", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9506, "datum": "2026-12-05", "zeit": "10:00", "team": "wU16 II", "gegner": "BBV Leipzig Eagles 2", "liga": "Bezirksliga Leipzig U16 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9642, "datum": "2026-12-05", "zeit": "12:30", "team": "mU16 III", "gegner": "TSG Markkleeberg", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-12-05", "zeit": "15:00", "team": "wU16 (Kooperation MDL)", "gegner": "ChemCats Chemnitz wU16", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-12-05", "zeit": "15:00", "team": "wU16 (Kooperation MDL)", "gegner": "Chemcats Chemnitz1", "liga": "Mitteldeutsche Liga wU16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 26, "datum": "2026-12-05", "zeit": "17:30", "team": "4. Herren", "gegner": "ASV Mammuts Sangerhausen", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5060, "datum": "2026-12-05", "zeit": "18:00", "team": "1. Herren", "gegner": "Weddinger Wiesel", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": "", "datum": "2026-12-06", "zeit": "09:00", "team": "wU14", "gegner": "Platzhalter wU14", "liga": "Landesliga weiblich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 26, "datum": "2026-12-06", "zeit": "10:00", "team": "mU12 (Kooperation MDL)", "gegner": "Science City Jena", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 9233, "datum": "2026-12-06", "zeit": "12:30", "team": "2. Damen", "gegner": "Science City Jena 3", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 24, "datum": "2026-12-06", "zeit": "15:00", "team": "3. Herren", "gegner": "BSW Sixers III", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 20, "datum": "2026-12-12", "zeit": "00:00", "team": "mU11 (Kooperation MDL)", "gegner": "Science City Jena", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 34, "datum": "2026-12-12", "zeit": "10:00", "team": "wU14", "gegner": "SC Osterwieck", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 34, "datum": "2026-12-12", "zeit": "13:00", "team": "2. Herren", "gegner": "Justabs Halle I", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-12-12", "zeit": "15:30", "team": "USV Halle", "gegner": "BC Dresden", "liga": "Jugendoberliga U18 weiblich", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 24, "datum": "2026-12-13", "zeit": "10:00", "team": "mU12 II", "gegner": "MBC Weißenfels", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 9705, "datum": "2026-12-13", "zeit": "12:30", "team": "wU14", "gegner": "Leipzig Lakers 2", "liga": "Bezirksliga Leipzig U14 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 24, "datum": "2026-12-13", "zeit": "15:00", "team": "mU16 II", "gegner": "MBC Weißenfels", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 26, "datum": "2026-12-18", "zeit": "00:00", "team": "5. Herren", "gegner": "BBC Halle VI", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2026-12-19", "zeit": "09:00", "team": "", "gegner": "Weihnachtsturnier", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 30, "datum": "2026-12-19", "zeit": "12:30", "team": "4. Herren", "gegner": "BBC Halle III", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2026-12-19", "zeit": "14:30", "team": "5. Herren", "gegner": "BBC Halle VI", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5067, "datum": "2026-12-19", "zeit": "18:00", "team": "1. Herren", "gegner": "Berliner SC", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 29, "datum": "2026-12-20", "zeit": "15:00", "team": "3. Herren", "gegner": "BG GutsMuths Panthers QLB/HBS II", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 16, "datum": "2027-01-09", "zeit": "10:00", "team": "USV Halle II", "gegner": "USV Halle I", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 37, "datum": "2027-01-09", "zeit": "10:00", "team": "mU17 (Kooperation MDL)", "gegner": "Anhalt Ballers", "liga": "Mitteldeutsche Liga mU17 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 29, "datum": "2027-01-09", "zeit": "11:30", "team": "mU11 (Kooperation MDL)", "gegner": "NINERS Chemnitz", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 20, "datum": "2027-01-09", "zeit": "12:30", "team": "wU16 (Kooperation MDL)", "gegner": "Team Halle", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 44, "datum": "2027-01-09", "zeit": "13:00", "team": "2. Herren", "gegner": "BSW Sixers II - am 17.8. zurückgezogen -", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 39, "datum": "2027-01-09", "zeit": "15:30", "team": "4. Herren", "gegner": "SSV Einheit Weißenfels II", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 28, "datum": "2027-01-10", "zeit": "10:00", "team": "mU12 I", "gegner": "BBC Halle", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 24, "datum": "2027-01-10", "zeit": "12:30", "team": "wU16 II", "gegner": "SC Osterwieck", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 16, "datum": "2027-01-16", "zeit": "00:00", "team": "mU16 I", "gegner": "Aschersleben Tigers BC", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 41, "datum": "2027-01-16", "zeit": "10:00", "team": "mU12 (Kooperation MDL)", "gegner": "Team Dresden", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 16, "datum": "2027-01-16", "zeit": "10:00", "team": "mU18", "gegner": "BBC Halle", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 46, "datum": "2027-01-16", "zeit": "10:00", "team": "mU14", "gegner": "1. Magdeburger BC", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9654, "datum": "2027-01-16", "zeit": "12:30", "team": "mU16 III", "gegner": "Leipzig Lakers 2", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9708, "datum": "2027-01-16", "zeit": "15:00", "team": "wU14", "gegner": "TSG Markkleeberg", "liga": "Bezirksliga Leipzig U14 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 5082, "datum": "2027-01-16", "zeit": "18:00", "team": "1. Herren", "gegner": "USV Potsdam", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": "", "datum": "2027-01-17", "zeit": "09:00", "team": "mU16 I", "gegner": "Aschersleben Tigers BC", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 29, "datum": "2027-01-17", "zeit": "10:00", "team": "mU16 II", "gegner": "BBC Halle II", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 16, "datum": "2027-01-17", "zeit": "12:30", "team": "mU14", "gegner": "BBC Halle II", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9243, "datum": "2027-01-17", "zeit": "12:30", "team": "2. Damen", "gegner": "ATSV Freiberg", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 38, "datum": "2027-01-17", "zeit": "15:00", "team": "3. Herren", "gegner": "BC Anhalt", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 19, "datum": "2027-01-22", "zeit": "00:00", "team": "5. Herren", "gegner": "BBC Halle V", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 36, "datum": "2027-01-23", "zeit": "10:00", "team": "mU11 (Kooperation MDL)", "gegner": "NINERS Chemnitz", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 44, "datum": "2027-01-23", "zeit": "10:00", "team": "wU14", "gegner": "SV Halle", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 50, "datum": "2027-01-23", "zeit": "13:00", "team": "2. Herren", "gegner": "HTB Halle", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 34, "datum": "2027-01-23", "zeit": "15:00", "team": "mU11 (Kooperation MDL)", "gegner": "Science City Jena", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": "", "datum": "2027-01-23", "zeit": "15:00", "team": "5. Herren", "gegner": "BBC Halle V", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 20, "datum": "2027-01-23", "zeit": "17:30", "team": "USV Halle I", "gegner": "SC Osterwieck", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-01-24", "zeit": "09:00", "team": "wU12 I", "gegner": "VfL Kalbe (Milde)", "liga": "Landesliga weiblich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 19, "datum": "2027-01-24", "zeit": "10:00", "team": "wU16 II", "gegner": "ChemCats Chemnitz", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 29, "datum": "2027-01-24", "zeit": "12:30", "team": "wU16 II", "gegner": "1. Magdeburger BC", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 29, "datum": "2027-01-24", "zeit": "12:30", "team": "mU12 II", "gegner": "BC Anhalt", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 34, "datum": "2027-01-24", "zeit": "15:00", "team": "mU12 I", "gegner": "BG GM Panthers QLB/HBS I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 28, "datum": "2027-01-30", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "BIG Gotha", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-01-30", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "Basketball in Gotha", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 5092, "datum": "2027-01-30", "zeit": "18:00", "team": "1. Herren", "gegner": "Rostock Seawolves 3", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 24, "datum": "2027-02-13", "zeit": "00:00", "team": "mU16 I", "gegner": "spielfrei", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 24, "datum": "2027-02-13", "zeit": "00:00", "team": "mU14", "gegner": "spielfrei", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 12, "datum": "2027-02-13", "zeit": "10:00", "team": "USV Halle", "gegner": "BSW Sixers", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 58, "datum": "2027-02-13", "zeit": "12:30", "team": "mU14", "gegner": "BG GM Panthers QLB/HBS I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 24, "datum": "2027-02-13", "zeit": "15:00", "team": "mU18", "gegner": "Burg Towers", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 38, "datum": "2027-02-14", "zeit": "10:00", "team": "mU16 II", "gegner": "BC Anhalt II", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 52, "datum": "2027-02-14", "zeit": "12:30", "team": "4. Herren", "gegner": "SV Großkayna", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 47, "datum": "2027-02-14", "zeit": "15:00", "team": "3. Herren", "gegner": "SV Zörbig I", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 24, "datum": "2027-02-20", "zeit": "10:00", "team": "USV Halle II", "gegner": "BBC Halle", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-02-20", "zeit": "13:00", "team": "2. Herren", "gegner": "PlayOff Runde 1", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5107, "datum": "2027-02-20", "zeit": "18:00", "team": "1. Herren", "gegner": "SV Empor Berlin", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 8, "datum": "2027-02-21", "zeit": "00:00", "team": "wU12 I", "gegner": "spielfrei", "liga": "Landesliga weiblich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 44, "datum": "2027-02-21", "zeit": "10:00", "team": "mU12 I", "gegner": "USC Magdeburg I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 38, "datum": "2027-02-21", "zeit": "12:30", "team": "wU16 II", "gegner": "Baskets Wolmirstedt", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 70, "datum": "2027-02-27", "zeit": "00:00", "team": "mU14", "gegner": "spielfrei", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 50, "datum": "2027-02-27", "zeit": "10:00", "team": "wU14", "gegner": "Burg Towers", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 28, "datum": "2027-02-27", "zeit": "10:00", "team": "mU14", "gegner": "SV Zörbig II", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9666, "datum": "2027-02-27", "zeit": "12:30", "team": "mU16 III", "gegner": "SV Automation Leipzig 3", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-02-27", "zeit": "13:00", "team": "2. Herren", "gegner": "PlayOff - Runde 2", "liga": "Oberliga Herren", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 34, "datum": "2027-02-27", "zeit": "15:00", "team": "wU16 (Kooperation MDL)", "gegner": "Team Dresden", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 47, "datum": "2027-02-28", "zeit": "12:30", "team": "mU16 II", "gegner": "SV Zörbig", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 38, "datum": "2027-02-28", "zeit": "12:30", "team": "mU12 II", "gegner": "Köthener Keiler", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 53, "datum": "2027-02-28", "zeit": "15:00", "team": "3. Herren", "gegner": "BBC Halle I", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-06", "zeit": "13:00", "team": "2. Herren", "gegner": "PlayOff - Runde 3", "liga": "Oberliga Herren", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5117, "datum": "2027-03-06", "zeit": "18:00", "team": "1. Herren", "gegner": "RedHawks Potsdam", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 2, "datum": "2027-03-07", "zeit": "10:00", "team": "wU16 I", "gegner": "BBC Halle", "liga": "Landesliga weiblich U16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-07", "zeit": "13:00", "team": "3. Herren", "gegner": "Überkreuzspiele", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 10, "datum": "2027-03-13", "zeit": "10:00", "team": "USV Halle", "gegner": "Limbacher Füchse", "liga": "Jugendoberliga U18 weiblich", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-13", "zeit": "13:00", "team": "2. Herren", "gegner": "PlayOff - Runde 4", "liga": "Oberliga Herren", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9, "datum": "2027-03-14", "zeit": "10:00", "team": "wU12 I", "gegner": "Ladybaskets Jena", "liga": "Landesliga weiblich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 26, "datum": "2027-03-14", "zeit": "10:00", "team": "wU16 II", "gegner": "Leipzig Lakers", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 50, "datum": "2027-03-14", "zeit": "12:30", "team": "mU12 I", "gegner": "BSW Sixers I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 47, "datum": "2027-03-14", "zeit": "12:30", "team": "wU16 II", "gegner": "USC Magdeburg", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-14", "zeit": "14:30", "team": "3. Herren", "gegner": "Finale", "liga": "Landesliga Herren St. 2", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9510, "datum": "2027-03-20", "zeit": "10:00", "team": "wU16 II", "gegner": "Leipzig Lakers", "liga": "Bezirksliga Leipzig U16 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 5127, "datum": "2027-03-20", "zeit": "18:00", "team": "1. Herren", "gegner": "Tiergarten ISC 99", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-21", "zeit": "09:00", "team": "", "gegner": "Limbacher Füchse", "liga": "Jugendoberliga U18 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 28, "datum": "2027-04-03", "zeit": "00:00", "team": "mU16 I", "gegner": "Basket Bears Bernburg", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 78, "datum": "2027-04-03", "zeit": "10:00", "team": "mU14", "gegner": "MBC Weißenfels I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 15, "datum": "2027-04-03", "zeit": "10:00", "team": "USV Halle", "gegner": "BBC Red Eagles Zerbst", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 28, "datum": "2027-04-03", "zeit": "12:30", "team": "mU18", "gegner": "BBC Stendal", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-03", "zeit": "14:30", "team": "2. Herren", "gegner": "PlayOff - Runde 5", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 47, "datum": "2027-04-04", "zeit": "00:00", "team": "mU12 II", "gegner": "SV Halle II", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 36, "datum": "2027-04-04", "zeit": "10:00", "team": "mU14", "gegner": "MBC Weißenfels II", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 53, "datum": "2027-04-04", "zeit": "12:30", "team": "mU16 II", "gegner": "BSW Sixers", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-04", "zeit": "14:30", "team": "mU16 I", "gegner": "Basket Bears Bernburg", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-10", "zeit": "09:00", "team": "", "gegner": "Frühlingsturnier", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 28, "datum": "2027-04-10", "zeit": "10:00", "team": "USV Halle II", "gegner": "BSW Sixers", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 30, "datum": "2027-04-10", "zeit": "12:30", "team": "USV Halle I", "gegner": "BBC Halle", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-10", "zeit": "14:30", "team": "2. Herren", "gegner": "PlayOff - Runde 6", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 53, "datum": "2027-04-11", "zeit": "10:00", "team": "wU16 II", "gegner": "BSW Sixers", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 86, "datum": "2027-04-17", "zeit": "10:00", "team": "mU14", "gegner": "BBC Halle I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 44, "datum": "2027-04-17", "zeit": "12:30", "team": "wU16 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 42, "datum": "2027-04-18", "zeit": "10:00", "team": "mU14", "gegner": "SV Halle", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9709, "datum": "2027-04-18", "zeit": "12:30", "team": "wU14", "gegner": "Limbacher Füchse 2", "liga": "Bezirksliga Leipzig U14 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-24", "zeit": "13:00", "team": "2. Herren", "gegner": "Ligapokal Rund 2", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 53, "datum": "2027-04-25", "zeit": "10:00", "team": "mU12 II", "gegner": "BSW Sixers II", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 50, "datum": "2027-05-08", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "ChemCats Chemnitz wU14", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-05-08", "zeit": "13:00", "team": "2. Herren", "gegner": "Ligapokal Rund 3", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-05-15", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "Chemcats Chemnitz2", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-05-29", "zeit": "13:00", "team": "2. Herren", "gegner": "Ligapokal Rund 4", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}]};
+const SPIELE = (DATEN && DATEN.spiele) || [];
+const KM_SATZ = 0.30;
+const EINREICHEN_MAIL = (DATEN && DATEN.einreichenMail) || "";
+const WT = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+const eur = n => n.toLocaleString("de-DE", {style:"currency", currency:"EUR", minimumFractionDigits:2});
+const dstr = iso => { const d = new Date(iso + "T12:00:00"); return WT[d.getDay()] + " " + d.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric"}); };
+
+let aktiv = null, anzahl = 2, rolle = "trainer";
+let gesammelt = [];      // abgeschlossene Spiele des Tages: [{spiel, posten}]
+let vorlage = null;      // Namen/Lizenz/Adresse aus dem vorigen Spiel
+const $ = id => document.getElementById(id);
+
+/* Ligen, in denen die hoehere Gebuehr erst ab LSC greift — in allen anderen
+   liegt die Stufe zwischen LSE und LSD. Grundlage: Anlage 1 der SRO, dort
+   "Oberliga Herren: LSD/LSE 35 EUR, LSC+ 45 EUR". Vor dem Saisonstart bitte
+   vom Sportwart gegenzeichnen lassen. */
+const LSC_STUFE = [/oberliga\s+herren/i];
+const STUFEN = {lse: "LSE", lsd: "LSD", lsc: "LSC oder höher"};
+
+function saetzeVon(s) {
+  if (!s) return null;
+  if (s.saetze) return s.saetze;
+  if (s.lse == null) return null;
+  const dreistufig = s.lsc == null && LSC_STUFE.some(r => r.test(s.liga || ""));
+  return dreistufig ? {lse: s.lse, lsd: s.lse, lsc: s.lsd}
+                    : {lse: s.lse, lsd: s.lsd, lsc: s.lsc != null ? s.lsc : s.lsd};
+}
+function stufenText(st) {
+  if (!st) return "";
+  return st.lsd === st.lsc ? `LSE ${st.lse} € · LSD+ ${st.lsd} €`
+                           : `LSE/LSD ${st.lse === st.lsd ? st.lsd : st.lse + "/" + st.lsd} € · LSC+ ${st.lsc} €`;
+}
+
+/* Kilometer-Gedaechtnis: einmal eingetragen, beim naechsten Spiel in derselben
+   Halle automatisch vorgeschlagen. Bleibt ausschliesslich auf diesem Geraet. */
+const SPEICHER = "usv-sr-km";
+const ADR_SPEICHER = "usv-sr-adr";   // Name -> {adresse, plz}, ausschliesslich lokal auf dem Geraet
+function adrSpeicher() { try { return JSON.parse(localStorage.getItem(ADR_SPEICHER) || "{}"); } catch (e) { return {}; } }
+function plzAus(a) { const m = (a || "").match(/\b(\d{5})\b/); return m ? m[1] : ""; }
+function adrMerken(name, adresse) {
+  const n = (name || "").trim().toLowerCase();
+  if (!n || !adresse) return;
+  try { const s = adrSpeicher(); s[n] = {adresse, plz: plzAus(adresse)}; localStorage.setItem(ADR_SPEICHER, JSON.stringify(s)); } catch (e) {}
+}
+function adrLesen(name) { return adrSpeicher()[(name || "").trim().toLowerCase()] || null; }
+function kmSpeicher() { try { return JSON.parse(localStorage.getItem(SPEICHER) || "{}"); } catch (e) { return {}; } }
+function kmKey(name) { return (name || "").trim().toLowerCase() + "|" + ((aktiv && aktiv.halle) || ""); }
+function kmMerken(name, km) {
+  if (!name || !km) return;
+  try { const s = kmSpeicher(); s[kmKey(name)] = km; localStorage.setItem(SPEICHER, JSON.stringify(s)); } catch (e) {}
+}
+const PROFIL_SPEICHER = "usv-sr-profil";     // eigene Daten, ausschliesslich lokal
+function profilLesen() { try { return JSON.parse(localStorage.getItem(PROFIL_SPEICHER) || "null"); } catch (e) { return null; } }
+function profilSchreiben(p) { try { localStorage.setItem(PROFIL_SPEICHER, JSON.stringify(p)); } catch (e) {} }
+
+const KONTO_SPEICHER = "usv-sr-konto";       // IBAN fuer die Erstattung, ausschliesslich lokal
+function kontoLesen() { try { return JSON.parse(localStorage.getItem(KONTO_SPEICHER) || "null"); } catch (e) { return null; } }
+
+function ibanGruppiert(v) {
+  return (v || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase().replace(/(.{4})/g, "$1 ").trim();
+}
+function ibanPlausibel(v) {
+  const roh = (v || "").replace(/\s/g, "").toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(roh)) return false;
+  const um = roh.slice(4) + roh.slice(0, 4);
+  let rest = 0;
+  for (const z of um.replace(/[A-Z]/g, c => String(c.charCodeAt(0) - 55))) rest = (rest * 10 + Number(z)) % 97;
+  return rest === 1;
+}
+
+const LISTE_SPEICHER = "usv-sr-liste";
+function listeLesen() { try { return JSON.parse(localStorage.getItem(LISTE_SPEICHER) || "[]"); } catch (e) { return []; } }
+function listeSchreiben(l) { try { localStorage.setItem(LISTE_SPEICHER, JSON.stringify(l)); } catch (e) {} }
+
+function listeParsen(text) {
+  return text.split("\n").map(z => z.trim()).filter(Boolean).map(z => {
+    const teile = z.split(/[;\t]|,(?=\s*(LSE|LSD|LSC)\b)/i).map(x => (x || "").trim()).filter(Boolean);
+    const stufe = (teile.find(x => /^(LSE|LSD|LSC)$/i.test(x)) || "").toUpperCase();
+    const plz = (teile.find(x => /^\d{5}$/.test(x)) || "");
+    const name = teile.find(x => x !== stufe && x !== plz) || "";
+    return name ? {name, stufe, plz} : null;
+  }).filter(Boolean);
+}
+
+function listeAnzeigen() {
+  const l = listeLesen();
+  $("listeAnzahl").textContent = l.length;
+  const dl = $("srnamen");
+  dl.innerHTML = l.map(p => `<option value="${p.name.replace(/"/g, "&quot;")}"></option>`).join("");
+}
+
+function ausListe(i) {
+  const name = $("nam" + i).value.trim().toLowerCase();
+  const p = listeLesen().find(x => x.name.toLowerCase() === name);
+  if (!p) return false;
+  if (p.stufe && $("lic" + i)) $("lic" + i).value = (p.stufe === "LSE") ? "lse" : "lsd";
+  if (p.plz && !adrLesen($("nam" + i).value)) adrMerken($("nam" + i).value, p.plz);
+  return true;
+}
+
+function adrAnzeigen(i) {
+  const name = $("nam" + i).value.trim();
+  const gespeichert = adrLesen(name);
+  const box = $("adrbox" + i), feld = $("adr" + i), merk = $("merkbox" + i);
+  if (gespeichert && gespeichert.adresse) {
+    $("plz" + i).textContent = gespeichert.plz || "PLZ unbekannt";
+    box.hidden = false; feld.hidden = true; merk.hidden = true;
+    feld.dataset.wert = gespeichert.adresse;
+  } else {
+    box.hidden = true; feld.hidden = false; merk.hidden = false;
+    feld.dataset.wert = feld.value;
+  }
+  mapsLink(i);
+}
+
+function adrAendern(i) {
+  const feld = $("adr" + i);
+  $("adrbox" + i).hidden = true; feld.hidden = false; $("merkbox" + i).hidden = false;
+  feld.value = ""; feld.dataset.wert = ""; feld.focus();
+  $("km" + i).value = ""; $("hint" + i).textContent = "Andere Anfahrt — bitte Kilometer neu ermitteln.";
+  rechne();
+}
+
+function kmVorschlag(i) {
+  const name = $("nam" + i).value, feld = $("km" + i), hint = $("hint" + i);
+  if (feld.disabled) return;
+  if (feld.value || !name) { hint.textContent = ""; return; }
+  const km = kmSpeicher()[kmKey(name)];
+  if (km) { feld.value = km; hint.textContent = "Kilometer aus der letzten Abrechnung übernommen — bitte kurz prüfen."; rechne(); }
+}
+
+function monateFuellen() {
+  const sel = $("monat"), gesehen = new Set();
+  SPIELE.forEach(s => {
+    const m = s.datum.slice(0, 7);
+    if (gesehen.has(m)) return;
+    gesehen.add(m);
+    const d = new Date(s.datum + "T12:00:00");
+    const o = document.createElement("option");
+    o.value = m;
+    o.textContent = d.toLocaleDateString("de-DE", {month: "long", year: "numeric"});
+    sel.appendChild(o);
+  });
+}
+
+function treffer(q) {
+  const t = q.trim().toLowerCase();
+  const monat = $("monat").value;
+  const heute = new Date().toISOString().slice(0,10);
+  let liste = monat ? SPIELE.filter(s => s.datum.startsWith(monat))
+                    : SPIELE.filter(s => s.datum >= heute);
+  if (liste.length === 0 && !monat) liste = SPIELE.slice();
+  if (!t) return monat ? liste : liste.slice(0, 6);
+  return liste.filter(s => {
+    const d = new Date(s.datum + "T12:00:00");
+    const dm = d.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit"});
+    return String(s.nr) === t || [s.gegner, s.team, s.liga, s.halle, s.datum, dm].join(" ").toLowerCase().includes(t);
+  }).slice(0, monat ? 60 : 12);
+}
+
+function zeigeTreffer() {
+  const ul = $("results"), liste = treffer($("q").value);
+  ul.innerHTML = "";
+  if (!liste.length) { ul.innerHTML = '<li class="empty" style="border:0;background:none;cursor:default">Kein Spiel gefunden — such nach Gegner, Datum oder Spielnummer.</li>'; return; }
+  liste.forEach(s => {
+    const li = document.createElement("li");
+    li.tabIndex = 0;
+    li.innerHTML = `<div class="l1">${s.team ? s.team + " – " : ""}${s.gegner}</div>
+      <div class="l2 num">${dstr(s.datum)}${s.zeit ? " · " + s.zeit + " Uhr" : ""}${s.nr ? " · Spiel " + s.nr : ""}</div>`;
+    const pick = () => waehle(s);
+    li.addEventListener("click", pick);
+    li.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+    ul.appendChild(li);
+  });
+}
+
+function waehle(s) {
+  aktiv = s;
+  $("game").innerHTML = `<div class="t">${s.team ? s.team + " – " : ""}${s.gegner}</div>
+    <div class="m num">${dstr(s.datum)}${s.zeit ? " · Anwurf " + s.zeit + " Uhr" : ""}</div>
+    <div class="m">${s.halle || "Halle offen"}${s.neu ? " (laut bisheriger Planung – bitte prüfen)" : ""}</div>
+    ${s.verlegtVon ? `<div class="m">Verlegt, ursprünglich ${dstr(s.verlegtVon)}</div>` : ""}`;
+  const tags = [`<span class="tag">${s.liga}</span>`];
+  if (s.nr) tags.push(`<span class="tag num">Spiel ${s.nr}</span>`);
+  if (s.verlegtVon) tags.push('<span class="tag warn">verlegt</span>');
+  if (s.neu) tags.push('<span class="tag warn">Halle prüfen</span>');
+  if (s.art === "abschlag") tags.push('<span class="tag rate">Abschlagsverfahren</span>');
+  else if (s.art === "ohne") tags.push('<span class="tag rate">keine Gebühr</span>');
+  else if (s.lse != null) tags.push(`<span class="tag rate num">${stufenText(saetzeVon(s))}</span>`);
+  else tags.push('<span class="tag rate">Satz unbekannt</span>');
+  $("tags").innerHTML = tags.join("");
+  $("s2").hidden = false;
+  $("s3").hidden = !(s.art === "jugend" || s.art === "erwachsen");
+  baueRefs();
+  rechne();
+  $("s2").scrollIntoView({behavior: "smooth", block: "start"});
+}
+
+function refAnzahl() { return rolle === "sr" ? 1 : anzahl; }
+
+/* Hat derselbe Name heute schon in dieser Halle gepfiffen? Dann gibt es fuer
+   das Folgespiel keine Fahrtkosten mehr. */
+function schonHier(name) {
+  const n = (name || "").trim().toLowerCase();
+  if (!n || !aktiv) return false;
+  return gesammelt.some(g => g.spiel.halle === aktiv.halle && g.spiel.datum === aktiv.datum &&
+                             g.posten.some(p => (p.name || "").trim().toLowerCase() === n));
+}
+
+function baueRefs() {
+  const box = $("refs");
+  box.innerHTML = "";
+  if (!aktiv || (aktiv.art !== "jugend" && aktiv.art !== "erwachsen")) return;
+  const st = saetzeVon(aktiv) || {lse: 0, lsd: 0, lsc: 0};
+  /* aufsteigend, vorausgewaehlt bleibt wie bisher die mittlere Stufe */
+  const stufen = st.lsd === st.lsc
+    ? [["lse", `LSE (${st.lse} €)`], ["lsd", `LSD oder höher (${st.lsd} €)`]]
+    : [["lse", `LSE (${st.lse} €)`], ["lsd", `LSD (${st.lsd} €)`], ["lsc", `LSC oder höher (${st.lsc} €)`]];
+  const anz = refAnzahl();
+  for (let i = 1; i <= anz; i++) {
+    const d = document.createElement("div");
+    d.className = "ref";
+    d.innerHTML = `
+      <h3>${rolle === "sr" ? "Meine Angaben" : (anz === 1 ? "Schiedsrichter" : "Schiedsrichter " + i)}</h3>
+      <div>
+        <label for="nam${i}">Name</label>
+        <input type="text" id="nam${i}" placeholder="Vor- und Nachname" autocomplete="off" list="srnamen">
+      </div>
+      <div class="row">
+        <div>
+          <label for="lic${i}">Lizenzstufe</label>
+          <select id="lic${i}">${stufen.map(([w, t]) => `<option value="${w}"${w === "lsd" ? " selected" : ""}>${t}</option>`).join("")}</select>
+        </div>
+        <div>
+          <label for="km${i}">Kilometer laut Maps</label>
+          <input type="number" id="km${i}" min="0" step="1" inputmode="numeric" placeholder="0">
+          <div class="hint" id="hint${i}"></div>
+        </div>
+      </div>
+      <div>
+        <label for="adr${i}">Anfahrt ab</label>
+        <div class="adrbox" id="adrbox${i}" hidden>
+          <span>Hinterlegt: <strong class="num" id="plz${i}"></strong></span>
+          <button type="button" class="linkbtn" data-aendern="${i}">andere Adresse</button>
+        </div>
+        <input type="text" id="adr${i}" placeholder="Straße, PLZ Ort" autocomplete="off">
+        <label class="check" id="merkbox${i}" style="margin-top:.45rem"><input type="checkbox" id="merk${i}" checked>
+          <span>Adresse auf diesem Gerät merken — angezeigt wird später nur die PLZ</span></label>
+        <div style="margin-top:.45rem"><a class="maps" id="map${i}" href="#" target="_blank" rel="noopener" aria-disabled="true">Route in Google Maps öffnen →</a></div>
+      </div>
+      <label class="check"><input type="checkbox" id="folge${i}">
+        <span>Hat direkt davor schon in dieser Halle gepfiffen — keine Fahrtkosten mehr</span></label>`;
+    box.appendChild(d);
+  }
+  for (let i = 1; i <= anz; i++) {
+    ["lic","km","folge","nam"].forEach(pf => $(pf + i).addEventListener("input", rechne));
+    $("adr" + i).addEventListener("input", () => mapsLink(i));
+    $("adr" + i).addEventListener("change", () => {
+      if ($("merk" + i).checked) adrMerken($("nam" + i).value, $("adr" + i).value.trim());
+      rechne();
+    });
+    $("nam" + i).addEventListener("blur", () => { ausListe(i); adrAnzeigen(i); kmVorschlag(i); folgeVorschlag(i); rechne(); });
+    $("adrbox" + i).querySelector("[data-aendern]").addEventListener("click", () => adrAendern(i));
+    $("km" + i).addEventListener("change", () => kmMerken($("nam" + i).value, $("km" + i).value));
+    $("folge" + i).addEventListener("change", () => { $("km" + i).disabled = $("folge" + i).checked; rechne(); });
+    vorbelegen(i);
+    adrAnzeigen(i);
+    folgeVorschlag(i);
+    kmVorschlag(i);
+  }
+  const on = $("oneNote");
+  const alleine = anzahl === 1;
+  on.hidden = !alleine;
+  on.innerHTML = aktiv.einzelDoppelt
+    ? "<strong>Nur ein Schiedsrichter:</strong> Dann ist die doppelte Gebühr zu zahlen."
+    : "<strong>Nur ein Schiedsrichter:</strong> In dieser Altersklasse wird die Gebühr <em>nicht</em> verdoppelt (Ausnahme für U12 und YSO).";
+}
+
+/* Eigenes Profil (Schiedsrichter-Sicht) bzw. die Angaben aus dem vorigen
+   Spiel des Tages uebernehmen, damit man nichts zweimal tippt. */
+function vorbelegen(i) {
+  const v = vorlage && vorlage[i - 1];
+  if (v) {
+    $("nam" + i).value = v.name || "";
+    if (v.lic && [...$("lic" + i).options].some(o => o.value === v.lic)) $("lic" + i).value = v.lic;
+    if (v.adr) $("adr" + i).value = v.adr;
+    ausListe(i);
+    return;
+  }
+  if (rolle !== "sr" || i !== 1) return;
+  const pr = profilLesen();
+  if (!pr) return;
+  if (pr.name) $("nam" + i).value = pr.name;
+  if (pr.lic && [...$("lic" + i).options].some(o => o.value === pr.lic)) $("lic" + i).value = pr.lic;
+  if (pr.adr && !adrLesen(pr.name)) adrMerken(pr.name, pr.adr);
+}
+
+function folgeVorschlag(i) {
+  const f = $("folge" + i);
+  if (!f || f.checked) return;
+  if (!schonHier($("nam" + i).value)) return;
+  f.checked = true;
+  $("km" + i).disabled = true;
+  $("km" + i).value = "";
+  $("hint" + i).textContent = "Zweites Spiel in derselben Halle — Fahrtkosten entfallen.";
+}
+
+function mapsLink(i) {
+  const a = $("map" + i), feld = $("adr" + i);
+  const adr = (feld.hidden ? (feld.dataset.wert || "") : feld.value).trim();
+  const ziel = (aktiv && (aktiv.adresse || aktiv.halle)) || "";
+  if (!adr || !ziel) { a.setAttribute("aria-disabled", "true"); a.href = "#"; return; }
+  a.removeAttribute("aria-disabled");
+  a.href = "https://www.google.com/maps/dir/?api=1&origin=" + encodeURIComponent(adr) +
+           "&waypoints=" + encodeURIComponent(ziel) + "&destination=" + encodeURIComponent(adr) + "&travelmode=driving";
+}
+
+function summeVon(posten) { return posten.reduce((a, p) => a + p.gebuehr + p.fahrt, 0); }
+
+/* Alle Quittungen dieses Tages: die bereits abgeschlossenen Spiele und das
+   Spiel, an dem gerade gearbeitet wird. */
+function gruppen() {
+  const g = gesammelt.map((x, idx) => ({idx, spiel: x.spiel, posten: x.posten, fix: true}));
+  if (aktiv && letzteBelege.length) g.push({idx: gesammelt.length, spiel: aktiv, posten: letzteBelege, fix: false});
+  return g;
+}
+
+function rechne() {
+  const t = $("total"), sum = $("sum"), split = $("split");
+  const st = saetzeVon(aktiv);
+  const rechenbar = !!(aktiv && (aktiv.art === "jugend" || aktiv.art === "erwachsen") && st);
+  const posten = [];
+  if (rechenbar) {
+    for (let i = 1; i <= refAnzahl(); i++) {
+      const stufe = $("lic" + i) ? $("lic" + i).value : "lsd";
+      let g = st[stufe] != null ? st[stufe] : st.lsd;
+      const verdoppelt = (anzahl === 1 && aktiv.einzelDoppelt);
+      if (verdoppelt) g *= 2;
+      const folge = $("folge" + i) ? $("folge" + i).checked : false;
+      const km = folge ? 0 : (parseFloat($("km" + i) ? $("km" + i).value : "") || 0);
+      const f = km > 0 ? km * KM_SATZ : 0;
+      const feldA = $("adr" + i);
+      const adrWert = feldA ? (feldA.hidden ? (feldA.dataset.wert || "") : feldA.value) : "";
+      posten.push({i, name: ($("nam" + i) ? $("nam" + i).value.trim() : ""), plz: plzAus(adrWert),
+                   stufe: STUFEN[stufe] || stufe, gebuehr: g, km, fahrt: f, folge, verdoppelt});
+    }
+  }
+  letzteBelege = posten;
+  quittungen();
+  tagesliste();
+  erstattungRendern();
+  mailLink();
+
+  if (!aktiv && !gesammelt.length) { t.hidden = true; return; }
+  t.hidden = false;
+  t.classList.remove("zero");
+  $("lbl").textContent = rolle === "sr" ? "Das bekommst du" : "Bargeld mitnehmen";
+
+  if (!gesammelt.length && aktiv && !rechenbar) {
+    t.classList.add("zero");
+    if (aktiv.art === "abschlag") {
+      sum.textContent = "Kein Bargeld nötig";
+      split.textContent = "Regionalliga: läuft über die Abschlagszahlung des Vereins.";
+    } else if (aktiv.art === "ohne") {
+      sum.textContent = "Kein Bargeld nötig";
+      split.textContent = "In dieser Spielrunde fällt keine Schiedsrichtergebühr an.";
+    } else {
+      sum.textContent = "Satz unbekannt";
+      split.textContent = "Liga nicht zugeordnet — bitte beim Sportwart nachfragen.";
+    }
+    return;
+  }
+
+  const alle = gruppen().map(g => g.posten).reduce((a, b) => a.concat(b), []);
+  const gebuehr = alle.reduce((a, p) => a + p.gebuehr, 0);
+  const fahrt = alle.reduce((a, p) => a + p.fahrt, 0);
+  const gesamt = gebuehr + fahrt;
+  const spiele = gruppen().length;
+  sum.textContent = rolle === "sr" ? eur(gesamt) : eur(Math.ceil(gesamt / 5) * 5);
+  split.innerHTML = (spiele > 1 ? `${spiele} Spiele<br>` : "") +
+    `Gebühr ${eur(gebuehr)}<br>Fahrtkosten ${eur(fahrt)}<br>zusammen ${eur(gesamt)}`;
+}
+
+function tagesliste() {
+  const box = $("tagesliste");
+  if (!gesammelt.length) { box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  box.innerHTML = gesammelt.map((g, idx) => `
+    <div class="zeile">
+      <span class="w">${g.spiel.team ? g.spiel.team + " – " : ""}${g.spiel.gegner}${g.spiel.zeit ? " · " + g.spiel.zeit + " Uhr" : ""}</span>
+      <span class="b num">${eur(summeVon(g.posten))}</span>
+      <button type="button" class="linkbtn" data-weg="${idx}">entfernen</button>
+    </div>`).join("");
+  box.querySelectorAll("[data-weg]").forEach(b =>
+    b.addEventListener("click", () => entferne(Number(b.dataset.weg))));
+}
+
+function entferne(g) {
+  gesammelt.splice(g, 1);
+  const neu = {};
+  Object.keys(unterschriften).forEach(k => {
+    const [a, b] = k.split("_").map(Number);
+    if (a === g) return;
+    neu[(a > g ? a - 1 : a) + "_" + b] = unterschriften[k];
+  });
+  Object.keys(unterschriften).forEach(k => delete unterschriften[k]);
+  Object.assign(unterschriften, neu);
+  rechne();
+}
+
+/* Aktuelles Spiel abschliessen und Platz fuer das naechste machen. */
+function weiteresSpiel() {
+  if (!aktiv || !letzteBelege.length) return;
+  gesammelt.push({spiel: aktiv, posten: letzteBelege.slice()});
+  vorlage = [];
+  for (let i = 1; i <= refAnzahl(); i++) {
+    const feldA = $("adr" + i);
+    vorlage.push({name: $("nam" + i) ? $("nam" + i).value.trim() : "",
+                  lic: $("lic" + i) ? $("lic" + i).value : "",
+                  adr: feldA && !feldA.hidden ? feldA.value.trim() : ""});
+  }
+  aktiv = null;
+  letzteBelege = [];
+  $("s2").hidden = true;
+  $("s3").hidden = true;
+  $("refs").innerHTML = "";
+  $("q").value = "";
+  zeigeTreffer();
+  rechne();
+  $("q").focus();
+  document.querySelector(".step").scrollIntoView({behavior: "smooth", block: "start"});
+}
+
+const unterschriften = {};   // "<Spiel>_<SR>" -> dataURL, damit ein Neu-Rendern nichts loescht
+
+function signaturAktivieren() {
+  document.querySelectorAll(".sigpad canvas").forEach(cv => {
+    const k = cv.id.replace("sig", "");
+    const ctx = cv.getContext("2d");
+    ctx.lineWidth = 2.2; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.strokeStyle = getComputedStyle(document.body).color;
+    if (unterschriften[k]) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0); img.src = unterschriften[k]; }
+    let zeichnet = false;
+    const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
+    cv.addEventListener("pointerdown", e => { zeichnet = true; cv.setPointerCapture(e.pointerId); const [x, y] = pos(e); ctx.beginPath(); ctx.moveTo(x, y); });
+    cv.addEventListener("pointermove", e => { if (!zeichnet) return; e.preventDefault(); const [x, y] = pos(e); ctx.lineTo(x, y); ctx.stroke(); });
+    const ende = () => { if (!zeichnet) return; zeichnet = false; unterschriften[k] = cv.toDataURL(); };
+    cv.addEventListener("pointerup", ende); cv.addEventListener("pointerleave", ende);
+  });
+  document.querySelectorAll(".sigrow .clear").forEach(b => b.addEventListener("click", () => {
+    const cv = $("sig" + b.dataset.sig);
+    cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
+    delete unterschriften[b.dataset.sig];
+  }));
+}
+
+function quittungen() {
+  const box = $("quittungen"), s4 = $("s4"), g = gruppen();
+  if (!g.length) { s4.hidden = true; box.innerHTML = ""; return; }
+  s4.hidden = false;
+  const mehrere = g.length > 1;
+  box.innerHTML = g.map(gr => {
+    const sp = gr.spiel;
+    return gr.posten.map(p => `
+    <div class="beleg">
+      <h4>Quittung${mehrere ? " " + (gr.idx + 1) : ""} · ${p.name || "Schiedsrichter " + p.i}</h4>
+      <dl>
+        <dt>Spiel</dt><dd>${sp.team ? sp.team + " – " : ""}${sp.gegner}</dd>
+        <dt>Datum / Anwurf</dt><dd class="num">${dstr(sp.datum)}${sp.zeit ? ", " + sp.zeit + " Uhr" : ""}</dd>
+        <dt>Spielklasse / Nr.</dt><dd>${sp.liga}${sp.nr ? " · " + sp.nr : ""}</dd>
+        <dt>Halle</dt><dd>${sp.halle || "—"}</dd>
+        <dt>Lizenzstufe</dt><dd>${p.stufe}</dd>
+        <dt>Spielleitungsgebühr</dt><dd class="num">${eur(p.gebuehr)}${p.verdoppelt ? " (doppelt, nur ein SR)" : ""}</dd>
+        <dt>Anfahrt ab</dt><dd class="num">${p.plz || "—"}</dd>
+        <dt>Fahrtkosten</dt><dd class="num">${p.km ? p.km + " km × 0,30 € = " + eur(p.fahrt) : (p.folge ? "entfällt (Folgespiel in derselben Halle)" : eur(0))}</dd>
+      </dl>
+      <div class="gesamt"><span>Ausgezahlt</span><span class="num">${eur(p.gebuehr + p.fahrt)}</span></div>
+      <div class="sigpad">
+        <canvas id="sig${gr.idx}_${p.i}" width="600" height="150" aria-label="Unterschriftenfeld Schiedsrichter"></canvas>
+        <div class="sigrow">
+          <span>Unterschrift Schiedsrichter · ${dstr(sp.datum).slice(3)}</span>
+          <button type="button" class="clear" data-sig="${gr.idx}_${p.i}">löschen</button>
+        </div>
+      </div>
+    </div>`).join("");
+  }).join("");
+  signaturAktivieren();
+}
+
+function erstattungRendern() {
+  const box = $("erstattungDruck"), iban = $("iban").value.trim(), inh = $("ibanName").value.trim();
+  box.classList.toggle("leer", !iban && !inh);
+  if (!iban && !inh) { box.innerHTML = ""; return; }
+  const gesamt = gruppen().reduce((a, gr) => a + summeVon(gr.posten), 0);
+  box.innerHTML = `<h4>${rolle === "sr" ? "Auszahlung an" : "Erstattung an"}</h4>
+    <dl>
+      <dt>Kontoinhaber</dt><dd>${inh || "—"}</dd>
+      <dt>IBAN</dt><dd class="num">${iban || "—"}</dd>
+      <dt>Verwendungszweck</dt><dd>Schiedsrichterkosten ${gruppen().map(gr => gr.spiel.team || gr.spiel.gegner).join(", ")}</dd>
+    </dl>
+    <div class="gesamt"><span>Betrag</span><span class="num">${eur(gesamt)}</span></div>`;
+}
+
+let letzteBelege = [];
+
+function belegText() {
+  const g = gruppen();
+  if (!g.length) return "";
+  const teile = g.map(gr => {
+    const sp = gr.spiel;
+    const kopf = `${sp.team ? sp.team + " – " : ""}${sp.gegner}\n${dstr(sp.datum)}${sp.zeit ? ", " + sp.zeit + " Uhr" : ""}\n${sp.liga}${sp.nr ? " · Spiel " + sp.nr : ""}\n${sp.halle || ""}`;
+    const zeilen = gr.posten.map(p =>
+      `\n${p.name || "Schiedsrichter " + p.i} (${p.stufe})${p.plz ? "\n  Anfahrt ab: " + p.plz : ""}\n  Spielleitungsgebühr: ${eur(p.gebuehr)}${p.verdoppelt ? " (doppelt, nur ein SR)" : ""}\n  Fahrtkosten: ${p.km ? p.km + " km × 0,30 € = " + eur(p.fahrt) : (p.folge ? "entfällt (Folgespiel, gleiche Halle)" : eur(0))}\n  Ausgezahlt: ${eur(p.gebuehr + p.fahrt)}`).join("");
+    return kopf + zeilen;
+  });
+  const summe = g.reduce((a, gr) => a + summeVon(gr.posten), 0);
+  const iban = $("iban").value.trim(), inh = $("ibanName").value.trim();
+  const konto = (iban || inh)
+    ? `\n\n${rolle === "sr" ? "Auszahlung an" : "Erstattung an"}: ${inh || "—"}\nIBAN: ${iban || "—"}` : "";
+  return "Schiedsrichterkosten\n\n" + teile.join("\n\n---\n\n") +
+         `\n\nGesamt (${g.length} ${g.length === 1 ? "Spiel" : "Spiele"}): ${eur(summe)}` + konto +
+         "\nGrundlage: BVSA-Schiedsrichterordnung 06/2026, Anlage 1.";
+}
+
+function mailLink() {
+  const a = $("mail"), g = gruppen();
+  if (!g.length) { a.hidden = true; return; }
+  a.hidden = false;
+  const summe = g.reduce((x, gr) => x + summeVon(gr.posten), 0);
+  const erst = g[0].spiel;
+  const betreff = `Schiedsrichterkosten ${erst.team || ""} ${dstr(erst.datum)}${g.length > 1 ? " (" + g.length + " Spiele)" : ""} – ${eur(summe)}`.replace(/\s+/g, " ").trim();
+  const body = belegText() + "\n\nZweck: Schiedsrichter\nMannschaft: " + (erst.team || "(bitte eintragen)") +
+               `\n\nDie unterschriebene${g.length > 1 || g[0].posten.length > 1 ? "n" : ""} Quittung${g.length > 1 || g[0].posten.length > 1 ? "en" : ""} hänge ich als PDF an.`;
+  const ziel = rolle === "sr" ? "" : EINREICHEN_MAIL;
+  a.textContent = rolle === "sr" ? "Quittung weiterleiten" : "Unterschrieben einreichen";
+  a.href = "mailto:" + ziel + "?subject=" + encodeURIComponent(betreff) + "&body=" + encodeURIComponent(body);
+}
+
+/* Saetze fuer Spiele, die nicht im Spielplan stehen. Jugend haengt an der
+   Altersklasse (U11/U12 ohne Verdopplung bei nur einem SR), Erwachsene am
+   Geschlecht. Grundlage: SRO 06/2026, Anlage 1. */
+const ERW_TARIF = {
+  "e-bezirk": {name: "Bezirksliga",                         m: {lse: 20, lsd: 25}, w: {lse: 15, lsd: 20}},
+  "e-landes": {name: "Landesliga",                          m: {lse: 30, lsd: 35}, w: {lse: 15, lsd: 20}},
+  "e-ober":   {name: "Oberliga",                            m: {lse: 35, lsd: 35, lsc: 45}, w: {lse: 25, lsd: 30}},
+  "e-oberpo": {name: "Oberliga Play-offs",                  m: {lse: 40, lsd: 50}, w: null},
+  "e-senior": {name: "Seniorenliga / Bestenermittlung",     m: {lse: 20, lsd: 25}, w: {lse: 20, lsd: 25}},
+  "e-pokal":  {name: "Pokal HF/Finale mit RL-Beteiligung",  m: {lse: 65, lsd: 65}, w: {lse: 35, lsd: 35}}
+};
+const JUG_NAME = {"j-land": "Landes-/Oberliga-Ebene", "j-bez": "Bezirks-/Territorialebene", "j-mdl": "Mitteldeutsche Liga"};
+
+function tarifFrei() {
+  const ebene = $("ebene").value, alter = Number($("alter").value), g = $("geschlecht").value;
+  if (!ebene) return null;
+  const kuerzel = g === "w" ? "w" : (g === "m" ? "m" : "");
+  if (ebene.charAt(0) === "j") {
+    const klasse = `${kuerzel}U${alter}${g === "x" ? " mixed" : ""}`;
+    if (alter <= 10) return {art: "ohne", label: `${klasse} · ${JUG_NAME[ebene]}`};
+    const klein = alter <= 12;                        // U11/U12: Gebuehr wird nicht verdoppelt
+    const satz = (!klein && ebene === "j-land") ? {lse: 20, lsd: 25} : {lse: 19, lsd: 25};
+    return {art: "jugend", saetze: {lse: satz.lse, lsd: satz.lsd, lsc: satz.lsd},
+            einzelDoppelt: !klein, label: `${klasse} · ${JUG_NAME[ebene]}`};
+  }
+  const e = ERW_TARIF[ebene];
+  const satz = g === "w" ? e.w : e.m;
+  const label = `${e.name} ${g === "w" ? "Damen" : "Herren"}`;
+  if (!satz) return {art: "erwachsen", label, einzelDoppelt: true};   // Satz nicht hinterlegt
+  return {art: "erwachsen", einzelDoppelt: true, label,
+          saetze: {lse: satz.lse, lsd: satz.lsd, lsc: satz.lsc != null ? satz.lsc : satz.lsd}};
+}
+
+function freiAnzeigen() {
+  const jugend = $("ebene").value.charAt(0) === "j";
+  $("alterBox").style.visibility = jugend ? "" : "hidden";
+  const t = tarifFrei();
+  const info = $("satzInfo");
+  if (!t) { info.textContent = "Erst Spielebene wählen — Altersklasse und Mannschaft bestimmen mit, welcher Satz gilt."; return; }
+  if (t.art === "ohne") { info.innerHTML = `<strong>${t.label}:</strong> in dieser Spielrunde fällt in der Regel keine Gebühr an.`; return; }
+  if (!t.saetze) { info.innerHTML = `<strong>${t.label}:</strong> Satz nicht hinterlegt — bitte beim Sportwart nachfragen.`; return; }
+  info.innerHTML = `<strong>${t.label}:</strong> ${stufenText(t.saetze)}` +
+    (t.einzelDoppelt ? " · bei nur einem Schiedsrichter doppelte Gebühr." : " · bei nur einem Schiedsrichter <em>keine</em> Verdopplung.");
+}
+
+["ebene", "alter", "geschlecht"].forEach(id => $(id).addEventListener("change", freiAnzeigen));
+freiAnzeigen();
+
+$("freiOk").addEventListener("click", () => {
+  const t = tarifFrei();
+  if (!t) { $("ebene").focus(); return; }
+  const liga = $("fliga").value.trim() || t.label;
+  waehle({
+    nr: $("fnr").value.trim(), datum: $("fdatum").value || new Date().toISOString().slice(0, 10),
+    zeit: "", team: "", gegner: $("fpaar").value.trim() || t.label, liga,
+    halle: $("fhalle").value.trim(), adresse: $("fhalle").value.trim(),
+    lse: t.saetze ? t.saetze.lse : null, lsd: t.saetze ? t.saetze.lsd : null,
+    saetze: t.saetze || null, art: t.art, einzelDoppelt: !!t.einzelDoppelt
+  });
+});
+
+$("listeSpeichern").addEventListener("click", () => {
+  const l = listeParsen($("listeText").value);
+  listeSchreiben(l); listeAnzeigen();
+  $("listeText").value = "";
+  for (let i = 1; i <= anzahl; i++) if ($("nam" + i)) { ausListe(i); adrAnzeigen(i); }
+  rechne();
+});
+$("listeLoeschen").addEventListener("click", () => {
+  if (!confirm("Schiedsrichter-Liste von diesem Gerät löschen?")) return;
+  try { localStorage.removeItem(LISTE_SPEICHER); } catch (e) {}
+  listeAnzeigen();
+});
+$("print").addEventListener("click", () => window.print());
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(belegText()); $("copyOk").hidden = false; setTimeout(() => $("copyOk").hidden = true, 4000); }
+  catch (e) { window.prompt("Text markieren und kopieren:", belegText()); }
+});
+$("q").addEventListener("input", zeigeTreffer);
+$("monat").addEventListener("change", zeigeTreffer);
+$("count").addEventListener("click", e => {
+  const b = e.target.closest("button[data-n]");
+  if (!b) return;
+  anzahl = Number(b.dataset.n);
+  [...$("count").children].forEach(x => x.setAttribute("aria-pressed", String(Number(x.dataset.n) === anzahl)));
+  baueRefs(); rechne();
+});
+/* Rolle: Trainer zahlt aus und legt aus, Schiedsrichter rechnet die eigenen
+   Spiele ab. Aendert Beschriftungen und wer auf der Quittung steht — die
+   Saetze sind fuer beide dieselben. */
+function rolleAnzeigen() {
+  const sr = rolle === "sr";
+  $("h1").textContent = sr ? "Was bekomme ich für das Spiel?" : "Was kosten die Schiedsrichter?";
+  $("intro").textContent = sr
+    ? "Spiel auswählen, eigene Lizenzstufe und Kilometer eintragen — fertig ist die Quittung zum Unterschreiben."
+    : "Spiel auswählen, Lizenzstufen eintragen — du siehst sofort, wie viel Bargeld du mitnehmen musst.";
+  $("countLabel").textContent = sr ? "Wie viele habt ihr das Spiel gepfiffen?" : "Wie viele Schiedsrichter sind angesetzt?";
+  const b = $("count").children;
+  b[0].textContent = sr ? "zu zweit" : "2 Schiedsrichter";
+  b[1].textContent = sr ? "ich allein" : "nur einer";
+  $("profilBox").hidden = !sr;
+  $("listeBox").hidden = sr;
+  $("erstattungTitel").textContent = sr ? "Auszahlung an mich" : "Erstattung an mich";
+  $("erstattungNote").textContent = sr
+    ? "Nur nötig, wenn du nicht bar bezahlt wirst, sondern überwiesen bekommst."
+    : "Damit der USV das ausgelegte Geld zurücküberweisen kann. Steht nur auf deinem Ausdruck, nicht auf der Quittung des Schiedsrichters.";
+  $("q4note").textContent = sr
+    ? "Je Spiel eine Quittung. Vom Trainer unterschreiben lassen, als PDF sichern — eine für dich, eine für den Verein, der bezahlt."
+    : "Je Schiedsrichter und Spiel eine Quittung — mit Lizenzstufe und Kilometern, damit der Betrag später nachvollziehbar ist. Unterschreiben lassen und mit der Abrechnung einreichen.";
+  $("tabletNote").innerHTML = sr
+    ? "<strong>So läuft es am Tablet:</strong> Angaben eintragen → unterschreiben lassen → „Drucken / als PDF sichern“ → „Quittung weiterleiten“ öffnet die Mail für Trainer, Staffelleiter oder Verein."
+    : "<strong>So läuft es am Tablet:</strong> Schiedsrichter unterschreibt direkt im Feld → „Drucken / als PDF sichern“ → „Unterschrieben einreichen“ öffnet die Mail, PDF anhängen und abschicken.";
+}
+
+$("rolle").addEventListener("click", e => {
+  const b = e.target.closest("button[data-r]");
+  if (!b || b.dataset.r === rolle) return;
+  rolle = b.dataset.r;
+  [...$("rolle").children].forEach(x => x.setAttribute("aria-pressed", String(x.dataset.r === rolle)));
+  rolleAnzeigen();
+  baueRefs();
+  rechne();
+});
+
+/* IBAN: waehrend des Tippens in Vierergruppen setzen und die Pruefziffer
+   nachrechnen — ein Zahlendreher faellt so sofort auf. */
+$("iban").addEventListener("input", () => {
+  const feld = $("iban"), vorher = feld.value, cursor = feld.selectionStart;
+  const zeichenDavor = vorher.slice(0, cursor).replace(/[^A-Za-z0-9]/g, "").length;
+  feld.value = ibanGruppiert(vorher);
+  let pos = 0, gezaehlt = 0;
+  while (pos < feld.value.length && gezaehlt < zeichenDavor) { if (feld.value[pos] !== " ") gezaehlt++; pos++; }
+  feld.setSelectionRange(pos, pos);
+  const roh = feld.value.replace(/\s/g, "");
+  const h = $("ibanHint");
+  h.textContent = roh.length < 15 ? "" : (ibanPlausibel(feld.value) ? "Prüfziffer stimmt." : "Prüfziffer stimmt nicht — bitte noch einmal vergleichen.");
+  h.style.color = ibanPlausibel(feld.value) ? "" : "var(--warn)";
+  kontoMerken();
+  rechne();
+});
+$("ibanName").addEventListener("input", () => { kontoMerken(); rechne(); });
+$("ibanMerk").addEventListener("change", () => {
+  if (!$("ibanMerk").checked) { try { localStorage.removeItem(KONTO_SPEICHER); } catch (e) {} }
+  else kontoMerken();
+});
+function kontoMerken() {
+  if (!$("ibanMerk").checked) return;
+  try { localStorage.setItem(KONTO_SPEICHER, JSON.stringify({iban: $("iban").value, name: $("ibanName").value})); } catch (e) {}
+}
+(function kontoLaden() {
+  const k = kontoLesen();
+  if (!k) return;
+  $("iban").value = k.iban || "";
+  $("ibanName").value = k.name || "";
+  $("ibanMerk").checked = true;
+})();
+
+$("pSpeichern").addEventListener("click", () => {
+  const pr = {name: $("pName").value.trim(), lic: $("pLic").value, adr: $("pAdr").value.trim()};
+  profilSchreiben(pr);
+  if (pr.name && pr.adr) adrMerken(pr.name, pr.adr);
+  baueRefs();
+  rechne();
+});
+$("pLoeschen").addEventListener("click", () => {
+  if (!confirm("Eigene Daten von diesem Gerät löschen?")) return;
+  try { localStorage.removeItem(PROFIL_SPEICHER); } catch (e) {}
+  $("pName").value = ""; $("pAdr").value = "";
+});
+(function profilLaden() {
+  const pr = profilLesen();
+  if (!pr) return;
+  $("pName").value = pr.name || "";
+  $("pAdr").value = pr.adr || "";
+  if (pr.lic) $("pLic").value = pr.lic;
+})();
+
+$("weiter").addEventListener("click", weiteresSpiel);
+
+rolleAnzeigen();
+$("foot").textContent = "Sätze nach BVSA-Schiedsrichterordnung 06/2026, Anlage 1 · Spielplan-Stand " + ((DATEN && DATEN.stand) || "");
+monateFuellen();
+listeAnzeigen();
+zeigeTreffer();
+
+/* Fuer die Einbettung per iframe (z. B. TYPO3): meldet die Inhaltshoehe nach aussen,
+   damit das Frame ohne Scrollbalken mitwaechst. Ohne Frame passiert nichts. */
+if (window.parent !== window) {
+  const melde = () => window.parent.postMessage(
+    {typ: "sr-rechner-hoehe", hoehe: document.documentElement.scrollHeight}, "*");
+  new ResizeObserver(melde).observe(document.body);
+  window.addEventListener("load", melde);
+  melde();
+}
+</script>
+
+</body></html>
