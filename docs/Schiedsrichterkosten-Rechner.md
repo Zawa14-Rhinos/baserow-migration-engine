@@ -108,6 +108,22 @@ das Bargeld reicht. Auf der Quittung steht immer der centgenaue Betrag.
 Für Kombinationen ohne hinterlegten Satz (z. B. Oberliga Play-offs der Damen) zeigt der Rechner
 „Satz unbekannt — bitte beim Sportwart nachfragen", statt einen Wert zu erfinden.
 
+## Verlegte Spiele
+
+Der Spielplan im Rechner ist eine **Momentaufnahme**, keine Verbindung zu TeamSL. Wird ein Spiel
+verlegt, merkt der Rechner das nicht von selbst — er zeigt weiter den Termin, der beim letzten
+Einpflegen galt. Der maßgebliche Stand steht in der Fußzeile.
+
+Zwei Wege damit umzugehen:
+
+1. **Im Rechner korrigieren.** Unter dem gewählten Spiel „Termin oder Halle stimmt nicht?" öffnen
+   und den tatsächlichen Termin eintragen. Das ursprüngliche Datum bleibt als Vermerk erhalten
+   („Verlegt, ursprünglich …") und erscheint mit dem Kennzeichen *verlegt* — auf der Quittung steht
+   dann der Termin, an dem wirklich gespielt wurde. Die Korrektur gilt nur für diese eine
+   Abrechnung; der hinterlegte Spielplan bleibt unangetastet.
+2. **Im Datensatz nachziehen**, wenn die Verlegung dauerhaft gilt: Datum und Uhrzeit ändern und
+   `verlegtVon` auf das alte Datum setzen. Dann sehen es alle, die den Rechner benutzen.
+
 ## Spielplan pflegen
 
 Der Spielplan liegt als JSON-Objekt `DATEN` am Anfang des `<script>`-Blocks in der HTML-Datei.
@@ -149,15 +165,20 @@ ausschließlich:
 | Schlüssel | Inhalt | Zweck |
 |---|---|---|
 | `usv-sr-liste` | Name, Lizenzstufe, PLZ der Schiedsrichter | Autovervollständigung |
-| `usv-sr-adr` | Name → Adresse und PLZ | Kilometer-Route, Anzeige nur der PLZ |
+| `usv-sr-adr` | Name → Anschrift | Kilometer-Route und Anschrift auf der Quittung |
 | `usv-sr-km` | Name + Halle → Kilometer | Vorschlag bei der nächsten Abrechnung |
 | `usv-sr-profil` | eigene Daten (Schiedsrichter-Sicht) | Vorbelegung |
 | `usv-sr-konto` | IBAN und Kontoinhaber, nur wenn angehakt | Erstattung |
 | `usv-sr-vorgaenge` | abgeschlossene Abrechnungen (Schema-Version 1) | Übersicht, was schon eingereicht ist |
 
-Auf der Quittung erscheint von der Anschrift nur die Postleitzahl. Telefonnummern und
-E-Mail-Adressen gehören nicht in die Schiedsrichter-Liste. Die IBAN wird nur gespeichert, wenn
-„Kontodaten auf diesem Gerät merken" aktiv ist, und steht nur auf dem eigenen Ausdruck.
+**Auf der Quittung steht die vollständige Anschrift des Schiedsrichters.** Die Geschäftsstelle
+verlangt sie für die Buchhaltung; eine Quittung ohne Anschrift wird nicht angenommen. Fehlt sie,
+weist der Rechner in der Quittung darauf hin und fragt beim Abschließen nach. In den gespeicherten
+Abrechnungsvorgang wandert sie trotzdem nicht — dort steht nur, was zum Wiedererkennen nötig ist.
+
+Telefonnummern und E-Mail-Adressen gehören nicht in die Schiedsrichter-Liste. Die IBAN wird nur
+gespeichert, wenn „Kontodaten auf diesem Gerät merken" aktiv ist, und steht nur auf dem eigenen
+Ausdruck.
 
 ## Abrechnungsvorgänge
 
@@ -171,9 +192,8 @@ Trainer gleichzeitig abrechnen. Verwechselbare Zeichen (0/O, 1/I) kommen nicht v
 der Quittung und ist der Schlüssel für jede Rückfrage.
 
 **Gespeichert wird bewusst wenig:** Spiel, Liga, Halle, Datum, Zahlungsart, je Schiedsrichter Name,
-Lizenzstufe, Gebühr, Kilometer und Betrag, dazu die Summen. Nicht gespeichert werden die
-Postleitzahl, die Unterschrift und alle Kontodaten — die Fahrtkostenzeile ist über die
-Kilometerzahl nachvollziehbar, und der Beleg ist und bleibt das PDF.
+Lizenzstufe, Gebühr, Kilometer und Betrag, dazu die Summen. Nicht gespeichert werden die Anschrift,
+die Unterschrift und alle Kontodaten — sie stehen auf dem PDF, und das PDF ist der Beleg.
 
 **Beträge werden in Cent als Ganzzahl geführt.** Das vermeidet Rundungsdifferenzen, wenn mehrere
 Positionen summiert werden. Der auf volle 5 € aufgerundete Betrag in der Trainer-Sicht ist eine
@@ -238,6 +258,7 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 | Datum | Änderung |
 |---|---|
 | 17.08.2026 | Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail |
+| 23.08.2026 | Vollständige Anschrift des Schiedsrichters auf der Quittung statt nur der Postleitzahl; Verlegungen im Rechner eintragbar; MDL-Spiel mU12 gegen ChemCats Chemnitz vom 27.09. auf den 03.10.2026 korrigiert |
 | 23.08.2026 | Liga laut Spielplan bei manueller Spieleingabe verpflichtend |
 | 23.08.2026 | Version 1.1: Abrechnungsvorgänge mit eigener Nummer, Zahlungsart, Festschreiben der Beträge, Liste der eigenen Abrechnungen auf dem Gerät, Doppelschutz, Abrechnungsnummer und Tarifstand auf der Quittung, Beträge intern in Cent, Warnung vor dem Verlassen mit ungedruckter Unterschrift |
 | 22.08.2026 | Schiedsrichter-Sicht mit eigenem Profil; Tagesabrechnung mehrerer Spiele mit automatischem Fahrtkosten-Wegfall; Altersklasse, Spielebene und Mannschaft getrennt wählbar inkl. MDL; dritte Lizenzstufe LSC; IBAN-Feld mit Vierergruppierung und Prüfziffernkontrolle; Anzeigefehler bei „Anfahrt ab" behoben |
