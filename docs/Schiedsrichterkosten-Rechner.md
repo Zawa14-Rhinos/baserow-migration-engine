@@ -30,7 +30,10 @@ Eingabeblöcke — gerechnet wird für beide Rollen identisch.
 2. **Schiedsrichter erfassen** — Anzahl (zwei oder einer), je Person Name, Lizenzstufe, Anfahrt und
    Kilometer. Namen aus der lokalen Schiedsrichter-Liste füllen Lizenzstufe und PLZ automatisch.
 3. **Auszahlen und quittieren** — bar vor Spielbeginn, Quittung im Feld unterschreiben lassen.
-4. **Einreichen** — „Drucken / als PDF sichern", dann „Unterschrieben einreichen" (öffnet eine Mail
+4. **Abschließen** — Zahlungsart wählen und festschreiben. Jedes Spiel bekommt eine
+   Abrechnungsnummer, die Beträge werden eingefroren, der Vorgang landet in der Liste auf dem
+   Gerät. Unterschreiben und Drucken gehen danach weiter, die Erfassung ist gesperrt.
+5. **Einreichen** — „Drucken / als PDF sichern", dann „Unterschrieben einreichen" (öffnet eine Mail
    an die im Datensatz hinterlegte Vereinsadresse). Für die Rückerstattung IBAN und Kontoinhaber
    eintragen — beides erscheint ausschließlich auf dem eigenen Ausdruck, nicht auf der
    Schiedsrichter-Quittung.
@@ -148,10 +151,39 @@ ausschließlich:
 | `usv-sr-km` | Name + Halle → Kilometer | Vorschlag bei der nächsten Abrechnung |
 | `usv-sr-profil` | eigene Daten (Schiedsrichter-Sicht) | Vorbelegung |
 | `usv-sr-konto` | IBAN und Kontoinhaber, nur wenn angehakt | Erstattung |
+| `usv-sr-vorgaenge` | abgeschlossene Abrechnungen (Schema-Version 1) | Übersicht, was schon eingereicht ist |
 
 Auf der Quittung erscheint von der Anschrift nur die Postleitzahl. Telefonnummern und
 E-Mail-Adressen gehören nicht in die Schiedsrichter-Liste. Die IBAN wird nur gespeichert, wenn
 „Kontodaten auf diesem Gerät merken" aktiv ist, und steht nur auf dem eigenen Ausdruck.
+
+## Abrechnungsvorgänge
+
+Seit Version 1.1 kennt der Rechner neben der Quittung den **Vorgang**: eine abgeschlossene
+Abrechnung für ein Spiel. Abgerechnet wird je Spiel — nicht je Spieltag und nicht je
+Schiedsrichter. Bei einer Doppelansetzung entstehen entsprechend zwei Vorgänge mit zwei Nummern.
+
+**Die Abrechnungsnummer** hat die Form `SR-20260905-9606-A7F3`: Spieldatum, Spielnummer und vier
+Zufallszeichen. Sie entsteht ohne zentrale Vergabe und bleibt trotzdem eindeutig, auch wenn mehrere
+Trainer gleichzeitig abrechnen. Verwechselbare Zeichen (0/O, 1/I) kommen nicht vor. Sie steht auf
+der Quittung und ist der Schlüssel für jede Rückfrage.
+
+**Gespeichert wird bewusst wenig:** Spiel, Liga, Halle, Datum, Zahlungsart, je Schiedsrichter Name,
+Lizenzstufe, Gebühr, Kilometer und Betrag, dazu die Summen. Nicht gespeichert werden die
+Postleitzahl, die Unterschrift und alle Kontodaten — die Fahrtkostenzeile ist über die
+Kilometerzahl nachvollziehbar, und der Beleg ist und bleibt das PDF.
+
+**Beträge werden in Cent als Ganzzahl geführt.** Das vermeidet Rundungsdifferenzen, wenn mehrere
+Positionen summiert werden. Der auf volle 5 € aufgerundete Betrag in der Trainer-Sicht ist eine
+Anzeigehilfe fürs Portemonnaie und wird nirgends gespeichert.
+
+**Doppelschutz:** Gibt es für dasselbe Spiel schon eine Abrechnung, fragt der Rechner nach, bevor
+eine zweite entsteht — verhindern kann und soll er es nicht, denn eine Korrekturabrechnung muss
+möglich bleiben.
+
+Die Liste „Meine Abrechnungen" ist **kein Beleg**, sondern eine Gedächtnisstütze. Sie liegt im
+Browserspeicher und ist mit den Websitedaten verschwunden. Deshalb warnt der Rechner beim
+Verlassen der Seite, wenn unterschrieben, aber noch nicht gedruckt wurde.
 
 ## Ausgabe und Weitergabe
 
@@ -204,4 +236,5 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 | Datum | Änderung |
 |---|---|
 | 17.08.2026 | Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail |
+| 23.08.2026 | Version 1.1: Abrechnungsvorgänge mit eigener Nummer, Zahlungsart, Festschreiben der Beträge, Liste der eigenen Abrechnungen auf dem Gerät, Doppelschutz, Abrechnungsnummer und Tarifstand auf der Quittung, Beträge intern in Cent, Warnung vor dem Verlassen mit ungedruckter Unterschrift |
 | 22.08.2026 | Schiedsrichter-Sicht mit eigenem Profil; Tagesabrechnung mehrerer Spiele mit automatischem Fahrtkosten-Wegfall; Altersklasse, Spielebene und Mannschaft getrennt wählbar inkl. MDL; dritte Lizenzstufe LSC; IBAN-Feld mit Vierergruppierung und Prüfziffernkontrolle; Anzeigefehler bei „Anfahrt ab" behoben |

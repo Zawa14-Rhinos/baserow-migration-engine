@@ -6,6 +6,10 @@ Frage, was der Rechner künftig tragen soll und was ausdrücklich nicht. Grundla
 
 Annahmen sind als **Annahme** gekennzeichnet, offene Entscheidungen am Ende gesammelt.
 
+> **Stand 23.08.2026:** Version 1.1 ist gebaut — Abschnitt 6 ist umgesetzt, die
+> Abrechnungseinheit ist wie angenommen das Spiel. Offen bleiben die Entscheidungen am Ende dieses
+> Dokuments; Baserow-Anbindung und Service Worker sind weiterhin nicht Teil des Rechners.
+
 ## 1 · Rolle des Rechners
 
 Die Kette vom Spiel bis zum Archiv hat sieben Glieder. Der Rechner deckt heute dreieinhalb davon ab.

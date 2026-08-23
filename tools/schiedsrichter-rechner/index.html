@@ -82,6 +82,25 @@
   .segmented button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 
   .rollen { margin-top: .7rem; }
+  .chip {
+    font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 600;
+    padding: .12rem .45rem; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
+  }
+  .chip.fertig { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .chip.weg { border-color: var(--good); color: var(--good); }
+  .idzeile { font-size: .76rem; color: var(--muted); margin: -.3rem 0 .6rem; }
+  .idzeile .num { color: var(--ink); }
+  .vorgang { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .6rem;
+    padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); font-size: .86rem; }
+  .vorgang .titel { font-weight: 600; flex: 1 1 10rem; min-width: 0; }
+  .vorgang .betrag { font-weight: 600; }
+  .vorgang .kennung { flex-basis: 100%; font-size: .74rem; color: var(--muted); }
+  .vorgang .tat { display: flex; gap: .8rem; }
+  .abschlussok {
+    border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 11px;
+    padding: .8rem .9rem; font-size: .88rem; display: flex; flex-direction: column; gap: .3rem;
+  }
+  .abschlussok strong { color: var(--accent); }
   .rollen button { font-size: .88rem; }
   .nurdruck { display: none; }
   .tagesliste { display: flex; flex-direction: column; gap: .35rem; }
@@ -304,6 +323,33 @@
     </div>
   </section>
 
+  <section class="step" id="s5" hidden>
+    <div class="head"><span class="k">5</span><h2>Abschließen</h2></div>
+    <div class="body">
+      <p class="note" id="s5note">Beim Abschließen bekommt jedes Spiel eine Abrechnungsnummer, die Beträge werden festgeschrieben und der Vorgang landet in deiner Liste auf diesem Gerät. Unterschreiben und Drucken geht danach weiter.</p>
+      <div>
+        <label for="zahlart">Wie wurde bezahlt?</label>
+        <select id="zahlart"></select>
+      </div>
+      <div class="abschlussok" id="abschlussOk" hidden></div>
+      <div class="actions">
+        <button type="button" id="abschliessen" class="printbtn">Abrechnung abschließen</button>
+        <button type="button" id="neueAbrechnung" class="printbtn ghost" hidden>Neue Abrechnung beginnen</button>
+      </div>
+    </div>
+  </section>
+
+  <details class="help" id="vorgangBox" hidden>
+    <summary>Meine Abrechnungen (<span id="vorgangAnzahl">0</span>)</summary>
+    <div class="body">
+      <p class="note">Was du auf diesem Gerät abgeschlossen hast — als Gedächtnisstütze, welche Abrechnung schon beim Verein ist. <strong>Kein Beleg:</strong> Der Beleg ist das PDF. Löschst du die Browserdaten, ist diese Liste weg.</p>
+      <div id="vorgangListe" style="display:flex;flex-direction:column;gap:.4rem"></div>
+      <div class="actions">
+        <button type="button" id="vorgaengeLoeschen" class="printbtn ghost">Liste leeren</button>
+      </div>
+    </div>
+  </details>
+
   <details class="help" id="profilBox" hidden>
     <summary>Meine Daten als Schiedsrichter</summary>
     <div class="body">
@@ -368,14 +414,23 @@
 <script>
 const DATEN = {"stand": "17.08.2026", "einreichenMail": "info@usv-halle-basketball.de", "spiele": [{"nr": 9606, "datum": "2026-09-05", "zeit": "10:00", "team": "mU16 III", "gegner": "USC Leipzig 2", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 2, "datum": "2026-09-05", "zeit": "12:30", "team": "mU17 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga mU17 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-09-12", "zeit": "09:00", "team": "", "gegner": "Turnier", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 12, "datum": "2026-09-12", "zeit": "10:00", "team": "wU14", "gegner": "BG GM Panthers QLB/HBS (aK)", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 3, "datum": "2026-09-13", "zeit": "10:00", "team": "wU16 II", "gegner": "BBV Leipzig Eagles", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-09-13", "zeit": "12:00", "team": "mU16 I", "gegner": "BBC Halle II", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-09-19", "zeit": "00:00", "team": "4. Herren", "gegner": "Spielfrei", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 4, "datum": "2026-09-19", "zeit": "10:00", "team": "wU14", "gegner": "Ladybaskets Jena (Gast)", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9502, "datum": "2026-09-19", "zeit": "10:00", "team": "wU16 II", "gegner": "Limbacher Füchse 2", "liga": "Bezirksliga Leipzig U16 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 4, "datum": "2026-09-19", "zeit": "13:00", "team": "2. Herren", "gegner": "VfL Kalbe (Milde)", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 3, "datum": "2026-09-19", "zeit": "17:00", "team": "5. Herren", "gegner": "Justabs Halle II", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 4, "datum": "2026-09-20", "zeit": "10:00", "team": "mU12 I", "gegner": "SV Halle I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 10, "datum": "2026-09-26", "zeit": "10:00", "team": "mU14", "gegner": "SV Zörbig I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 8, "datum": "2026-09-26", "zeit": "15:00", "team": "3. Herren", "gegner": "SSV Einheit Weißenfels I", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 1, "datum": "2026-09-26", "zeit": "17:30", "team": "USV Halle I", "gegner": "USV Halle II", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5012, "datum": "2026-09-26", "zeit": "18:00", "team": "1. Herren", "gegner": "DBV Charlottenburg 2", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-09-27", "zeit": "00:00", "team": "mU12 (Kooperation MDL)", "gegner": "ChemCats Chemnitz", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 8, "datum": "2026-09-27", "zeit": "10:00", "team": "wU16 II", "gegner": "SV Halle", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 8, "datum": "2026-09-27", "zeit": "10:00", "team": "mU12 II", "gegner": "SV Großkayna", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 8, "datum": "2026-09-27", "zeit": "12:30", "team": "mU16 II", "gegner": "SV Halle (aK)", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-09-27", "zeit": "14:30", "team": "2. Damen", "gegner": "Leipzig Lakers 3", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9208, "datum": "2026-09-27", "zeit": "15:00", "team": "2. Damen", "gegner": "Leipzig Lakers 5", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9618, "datum": "2026-10-03", "zeit": "10:00", "team": "mU16 III", "gegner": "SC Eintracht Schkeuditz", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-10-04", "zeit": "00:00", "team": "mU16 I", "gegner": "BBC Halle II", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-10-04", "zeit": "09:00", "team": "wU14", "gegner": "BG GM Panthers QLB/HBS (aK)", "liga": "Landesliga weiblich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-10-04", "zeit": "12:30", "team": "mU18", "gegner": "BG GM Panthers QLB/HBS", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-10-10", "zeit": "10:00", "team": "mU17 (Kooperation MDL)", "gegner": "BIG Gotha", "liga": "Mitteldeutsche Liga mU17 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-10-10", "zeit": "11:00", "team": "USV Halle II", "gegner": "Justabs Halle", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-10-10", "zeit": "13:00", "team": "2. Herren", "gegner": "Börde Bisons Magdeburg", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 20, "datum": "2026-10-10", "zeit": "15:30", "team": "mU14", "gegner": "BBC Stendal I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 5024, "datum": "2026-10-10", "zeit": "18:00", "team": "1. Herren", "gegner": "RSV Eintracht 1949 2", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 3, "datum": "2026-10-11", "zeit": "10:00", "team": "USV Halle", "gegner": "BBC Red Eagles Zerbst", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 12, "datum": "2026-10-11", "zeit": "12:30", "team": "mU12 I", "gegner": "BBC Stendal I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 6, "datum": "2026-10-11", "zeit": "15:30", "team": "mU14", "gegner": "MBC Weißenfels II", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9, "datum": "2026-10-16", "zeit": "00:00", "team": "5. Herren", "gegner": "Topnados Halle", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2026-10-17", "zeit": "14:00", "team": "5. Herren", "gegner": "Topnados Halle", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 4, "datum": "2026-10-31", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "Team Ostthüringen", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-10-31", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "Team Jena/Weimar", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9, "datum": "2026-11-01", "zeit": "10:00", "team": "wU16 II", "gegner": "Limbacher Füchse", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 2, "datum": "2026-11-01", "zeit": "12:30", "team": "USV Halle", "gegner": "Leipzig Lakers", "liga": "Jugendoberliga U18 weiblich", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 20, "datum": "2026-11-07", "zeit": "10:00", "team": "wU14", "gegner": "BSW Sixers", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9630, "datum": "2026-11-07", "zeit": "12:30", "team": "mU16 III", "gegner": "BBV Wurzen", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-11-07", "zeit": "15:00", "team": "mU12 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 7, "datum": "2026-11-07", "zeit": "17:00", "team": "USV Halle I", "gegner": "Justabs Halle", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 14, "datum": "2026-11-07", "zeit": "17:30", "team": "4. Herren", "gegner": "Schkopau Baskets", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5036, "datum": "2026-11-07", "zeit": "18:00", "team": "1. Herren", "gegner": "ALBA BERLIN Basketballteam 2", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 16, "datum": "2026-11-08", "zeit": "00:00", "team": "mU12 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 16, "datum": "2026-11-08", "zeit": "00:00", "team": "3. Herren", "gegner": "spielfrei", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 16, "datum": "2026-11-08", "zeit": "00:00", "team": "wU16 II", "gegner": "spielfrei", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 16, "datum": "2026-11-08", "zeit": "10:00", "team": "mU16 II", "gegner": "Aschersleben Tigers BC", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9218, "datum": "2026-11-08", "zeit": "12:30", "team": "2. Damen", "gegner": "Dresden Urbanics", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9223, "datum": "2026-11-14", "zeit": "00:00", "team": "2. Damen", "gegner": "Gegner offen", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 30, "datum": "2026-11-14", "zeit": "10:00", "team": "mU14", "gegner": "USC Magdeburg I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 20, "datum": "2026-11-14", "zeit": "13:00", "team": "2. Herren", "gegner": "USC Magdeburg I", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 22, "datum": "2026-11-14", "zeit": "15:30", "team": "mU17 (Kooperation MDL)", "gegner": "Humanas Rookie Academy", "liga": "Mitteldeutsche Liga mU17 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 18, "datum": "2026-11-14", "zeit": "18:00", "team": "4. Herren", "gegner": "BBC Halle II", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 15, "datum": "2026-11-20", "zeit": "00:00", "team": "5. Herren", "gegner": "BBC Halle IV", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-11-21", "zeit": "10:00", "team": "mU18", "gegner": "SSV Einheit Weißenfels", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 28, "datum": "2026-11-21", "zeit": "10:00", "team": "wU14", "gegner": "1. Magdeburger BC", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 10, "datum": "2026-11-21", "zeit": "12:30", "team": "USV Halle I", "gegner": "BSW Sixers", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-11-21", "zeit": "12:30", "team": "mU16 I", "gegner": "SV Großkayna", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-11-21", "zeit": "14:30", "team": "5. Herren", "gegner": "BBC Halle IV", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-11-21", "zeit": "15:00", "team": "USV Halle II", "gegner": "SC Osterwieck", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5048, "datum": "2026-11-21", "zeit": "18:00", "team": "1. Herren", "gegner": "KINGS&QUEENS Basketball Potsdam", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 13, "datum": "2026-11-28", "zeit": "10:00", "team": "mU11 (Kooperation MDL)", "gegner": "BSW Sixers", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 40, "datum": "2026-11-28", "zeit": "10:00", "team": "mU14", "gegner": "BSW Sixers I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-11-28", "zeit": "13:00", "team": "2. Herren", "gegner": "BG GutsMuths Panthers QLB/HBS I", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 15, "datum": "2026-11-28", "zeit": "15:00", "team": "mU11 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 20, "datum": "2026-11-29", "zeit": "00:00", "team": "mU12 I", "gegner": "SV Zörbig I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 8, "datum": "2026-11-29", "zeit": "10:00", "team": "USV Halle", "gegner": "MBC Weißenfels", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 12, "datum": "2026-11-29", "zeit": "12:00", "team": "mU14", "gegner": "SV Halle", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 15, "datum": "2026-11-29", "zeit": "12:30", "team": "wU16 II", "gegner": "BC Dresden", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 28, "datum": "2026-11-29", "zeit": "15:00", "team": "2. Herren", "gegner": "BG GutsMuths Panthers QLB/HBS I", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9506, "datum": "2026-12-05", "zeit": "10:00", "team": "wU16 II", "gegner": "BBV Leipzig Eagles 2", "liga": "Bezirksliga Leipzig U16 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9642, "datum": "2026-12-05", "zeit": "12:30", "team": "mU16 III", "gegner": "TSG Markkleeberg", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 12, "datum": "2026-12-05", "zeit": "15:00", "team": "wU16 (Kooperation MDL)", "gegner": "ChemCats Chemnitz wU16", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2026-12-05", "zeit": "15:00", "team": "wU16 (Kooperation MDL)", "gegner": "Chemcats Chemnitz1", "liga": "Mitteldeutsche Liga wU16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 26, "datum": "2026-12-05", "zeit": "17:30", "team": "4. Herren", "gegner": "ASV Mammuts Sangerhausen", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5060, "datum": "2026-12-05", "zeit": "18:00", "team": "1. Herren", "gegner": "Weddinger Wiesel", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": "", "datum": "2026-12-06", "zeit": "09:00", "team": "wU14", "gegner": "Platzhalter wU14", "liga": "Landesliga weiblich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 26, "datum": "2026-12-06", "zeit": "10:00", "team": "mU12 (Kooperation MDL)", "gegner": "Science City Jena", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 9233, "datum": "2026-12-06", "zeit": "12:30", "team": "2. Damen", "gegner": "Science City Jena 3", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 24, "datum": "2026-12-06", "zeit": "15:00", "team": "3. Herren", "gegner": "BSW Sixers III", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 20, "datum": "2026-12-12", "zeit": "00:00", "team": "mU11 (Kooperation MDL)", "gegner": "Science City Jena", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 34, "datum": "2026-12-12", "zeit": "10:00", "team": "wU14", "gegner": "SC Osterwieck", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 34, "datum": "2026-12-12", "zeit": "13:00", "team": "2. Herren", "gegner": "Justabs Halle I", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 6, "datum": "2026-12-12", "zeit": "15:30", "team": "USV Halle", "gegner": "BC Dresden", "liga": "Jugendoberliga U18 weiblich", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 24, "datum": "2026-12-13", "zeit": "10:00", "team": "mU12 II", "gegner": "MBC Weißenfels", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 9705, "datum": "2026-12-13", "zeit": "12:30", "team": "wU14", "gegner": "Leipzig Lakers 2", "liga": "Bezirksliga Leipzig U14 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 24, "datum": "2026-12-13", "zeit": "15:00", "team": "mU16 II", "gegner": "MBC Weißenfels", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 26, "datum": "2026-12-18", "zeit": "00:00", "team": "5. Herren", "gegner": "BBC Halle VI", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2026-12-19", "zeit": "09:00", "team": "", "gegner": "Weihnachtsturnier", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 30, "datum": "2026-12-19", "zeit": "12:30", "team": "4. Herren", "gegner": "BBC Halle III", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2026-12-19", "zeit": "14:30", "team": "5. Herren", "gegner": "BBC Halle VI", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5067, "datum": "2026-12-19", "zeit": "18:00", "team": "1. Herren", "gegner": "Berliner SC", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 29, "datum": "2026-12-20", "zeit": "15:00", "team": "3. Herren", "gegner": "BG GutsMuths Panthers QLB/HBS II", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 16, "datum": "2027-01-09", "zeit": "10:00", "team": "USV Halle II", "gegner": "USV Halle I", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 37, "datum": "2027-01-09", "zeit": "10:00", "team": "mU17 (Kooperation MDL)", "gegner": "Anhalt Ballers", "liga": "Mitteldeutsche Liga mU17 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 29, "datum": "2027-01-09", "zeit": "11:30", "team": "mU11 (Kooperation MDL)", "gegner": "NINERS Chemnitz", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 20, "datum": "2027-01-09", "zeit": "12:30", "team": "wU16 (Kooperation MDL)", "gegner": "Team Halle", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 44, "datum": "2027-01-09", "zeit": "13:00", "team": "2. Herren", "gegner": "BSW Sixers II - am 17.8. zurückgezogen -", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 39, "datum": "2027-01-09", "zeit": "15:30", "team": "4. Herren", "gegner": "SSV Einheit Weißenfels II", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 28, "datum": "2027-01-10", "zeit": "10:00", "team": "mU12 I", "gegner": "BBC Halle", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 24, "datum": "2027-01-10", "zeit": "12:30", "team": "wU16 II", "gegner": "SC Osterwieck", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 16, "datum": "2027-01-16", "zeit": "00:00", "team": "mU16 I", "gegner": "Aschersleben Tigers BC", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 41, "datum": "2027-01-16", "zeit": "10:00", "team": "mU12 (Kooperation MDL)", "gegner": "Team Dresden", "liga": "Mitteldeutsche Liga mU12 Vorrunde", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 16, "datum": "2027-01-16", "zeit": "10:00", "team": "mU18", "gegner": "BBC Halle", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 46, "datum": "2027-01-16", "zeit": "10:00", "team": "mU14", "gegner": "1. Magdeburger BC", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9654, "datum": "2027-01-16", "zeit": "12:30", "team": "mU16 III", "gegner": "Leipzig Lakers 2", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9708, "datum": "2027-01-16", "zeit": "15:00", "team": "wU14", "gegner": "TSG Markkleeberg", "liga": "Bezirksliga Leipzig U14 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 5082, "datum": "2027-01-16", "zeit": "18:00", "team": "1. Herren", "gegner": "USV Potsdam", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": "", "datum": "2027-01-17", "zeit": "09:00", "team": "mU16 I", "gegner": "Aschersleben Tigers BC", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 29, "datum": "2027-01-17", "zeit": "10:00", "team": "mU16 II", "gegner": "BBC Halle II", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 16, "datum": "2027-01-17", "zeit": "12:30", "team": "mU14", "gegner": "BBC Halle II", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9243, "datum": "2027-01-17", "zeit": "12:30", "team": "2. Damen", "gegner": "ATSV Freiberg", "liga": "Bezirksliga Leipzig Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 15, "lsd": 20, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 38, "datum": "2027-01-17", "zeit": "15:00", "team": "3. Herren", "gegner": "BC Anhalt", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 19, "datum": "2027-01-22", "zeit": "00:00", "team": "5. Herren", "gegner": "BBC Halle V", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 36, "datum": "2027-01-23", "zeit": "10:00", "team": "mU11 (Kooperation MDL)", "gegner": "NINERS Chemnitz", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 44, "datum": "2027-01-23", "zeit": "10:00", "team": "wU14", "gegner": "SV Halle", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 50, "datum": "2027-01-23", "zeit": "13:00", "team": "2. Herren", "gegner": "HTB Halle", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 34, "datum": "2027-01-23", "zeit": "15:00", "team": "mU11 (Kooperation MDL)", "gegner": "Science City Jena", "liga": "Mitteldeutsche Liga mU11", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": "", "datum": "2027-01-23", "zeit": "15:00", "team": "5. Herren", "gegner": "BBC Halle V", "liga": "Bezirksliga Herren Halle", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 20, "datum": "2027-01-23", "zeit": "17:30", "team": "USV Halle I", "gegner": "SC Osterwieck", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-01-24", "zeit": "09:00", "team": "wU12 I", "gegner": "VfL Kalbe (Milde)", "liga": "Landesliga weiblich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 19, "datum": "2027-01-24", "zeit": "10:00", "team": "wU16 II", "gegner": "ChemCats Chemnitz", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 29, "datum": "2027-01-24", "zeit": "12:30", "team": "wU16 II", "gegner": "1. Magdeburger BC", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 29, "datum": "2027-01-24", "zeit": "12:30", "team": "mU12 II", "gegner": "BC Anhalt", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 34, "datum": "2027-01-24", "zeit": "15:00", "team": "mU12 I", "gegner": "BG GM Panthers QLB/HBS I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 28, "datum": "2027-01-30", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "BIG Gotha", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-01-30", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "Basketball in Gotha", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 5092, "datum": "2027-01-30", "zeit": "18:00", "team": "1. Herren", "gegner": "Rostock Seawolves 3", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 24, "datum": "2027-02-13", "zeit": "00:00", "team": "mU16 I", "gegner": "spielfrei", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 24, "datum": "2027-02-13", "zeit": "00:00", "team": "mU14", "gegner": "spielfrei", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 12, "datum": "2027-02-13", "zeit": "10:00", "team": "USV Halle", "gegner": "BSW Sixers", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 58, "datum": "2027-02-13", "zeit": "12:30", "team": "mU14", "gegner": "BG GM Panthers QLB/HBS I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 24, "datum": "2027-02-13", "zeit": "15:00", "team": "mU18", "gegner": "Burg Towers", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 38, "datum": "2027-02-14", "zeit": "10:00", "team": "mU16 II", "gegner": "BC Anhalt II", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 52, "datum": "2027-02-14", "zeit": "12:30", "team": "4. Herren", "gegner": "SV Großkayna", "liga": "Bezirksliga Herren Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 47, "datum": "2027-02-14", "zeit": "15:00", "team": "3. Herren", "gegner": "SV Zörbig I", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 24, "datum": "2027-02-20", "zeit": "10:00", "team": "USV Halle II", "gegner": "BBC Halle", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-02-20", "zeit": "13:00", "team": "2. Herren", "gegner": "PlayOff Runde 1", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5107, "datum": "2027-02-20", "zeit": "18:00", "team": "1. Herren", "gegner": "SV Empor Berlin", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 8, "datum": "2027-02-21", "zeit": "00:00", "team": "wU12 I", "gegner": "spielfrei", "liga": "Landesliga weiblich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 44, "datum": "2027-02-21", "zeit": "10:00", "team": "mU12 I", "gegner": "USC Magdeburg I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 38, "datum": "2027-02-21", "zeit": "12:30", "team": "wU16 II", "gegner": "Baskets Wolmirstedt", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 70, "datum": "2027-02-27", "zeit": "00:00", "team": "mU14", "gegner": "spielfrei", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 50, "datum": "2027-02-27", "zeit": "10:00", "team": "wU14", "gegner": "Burg Towers", "liga": "Landesliga weiblich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 28, "datum": "2027-02-27", "zeit": "10:00", "team": "mU14", "gegner": "SV Zörbig II", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9666, "datum": "2027-02-27", "zeit": "12:30", "team": "mU16 III", "gegner": "SV Automation Leipzig 3", "liga": "Bezirksliga Leipzig U16 mnl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-02-27", "zeit": "13:00", "team": "2. Herren", "gegner": "PlayOff - Runde 2", "liga": "Oberliga Herren", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 34, "datum": "2027-02-27", "zeit": "15:00", "team": "wU16 (Kooperation MDL)", "gegner": "Team Dresden", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 47, "datum": "2027-02-28", "zeit": "12:30", "team": "mU16 II", "gegner": "SV Zörbig", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 38, "datum": "2027-02-28", "zeit": "12:30", "team": "mU12 II", "gegner": "Köthener Keiler", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 53, "datum": "2027-02-28", "zeit": "15:00", "team": "3. Herren", "gegner": "BBC Halle I", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-06", "zeit": "13:00", "team": "2. Herren", "gegner": "PlayOff - Runde 3", "liga": "Oberliga Herren", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 5117, "datum": "2027-03-06", "zeit": "18:00", "team": "1. Herren", "gegner": "RedHawks Potsdam", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": 2, "datum": "2027-03-07", "zeit": "10:00", "team": "wU16 I", "gegner": "BBC Halle", "liga": "Landesliga weiblich U16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-07", "zeit": "13:00", "team": "3. Herren", "gegner": "Überkreuzspiele", "liga": "Landesliga Herren St. 2", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 10, "datum": "2027-03-13", "zeit": "10:00", "team": "USV Halle", "gegner": "Limbacher Füchse", "liga": "Jugendoberliga U18 weiblich", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-13", "zeit": "13:00", "team": "2. Herren", "gegner": "PlayOff - Runde 4", "liga": "Oberliga Herren", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9, "datum": "2027-03-14", "zeit": "10:00", "team": "wU12 I", "gegner": "Ladybaskets Jena", "liga": "Landesliga weiblich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 26, "datum": "2027-03-14", "zeit": "10:00", "team": "wU16 II", "gegner": "Leipzig Lakers", "liga": "Jugendoberliga U16 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 50, "datum": "2027-03-14", "zeit": "12:30", "team": "mU12 I", "gegner": "BSW Sixers I", "liga": "Landesliga männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 47, "datum": "2027-03-14", "zeit": "12:30", "team": "wU16 II", "gegner": "USC Magdeburg", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-14", "zeit": "14:30", "team": "3. Herren", "gegner": "Finale", "liga": "Landesliga Herren St. 2", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 30, "lsd": 35, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 9510, "datum": "2027-03-20", "zeit": "10:00", "team": "wU16 II", "gegner": "Leipzig Lakers", "liga": "Bezirksliga Leipzig U16 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 5127, "datum": "2027-03-20", "zeit": "18:00", "team": "1. Herren", "gegner": "Tiergarten ISC 99", "liga": "2. Regionalliga Herren Ost", "halle": "Sportschulen Halle", "adresse": "Robert-Koch-Straße 31b 06110 Halle", "lse": null, "lsd": null, "art": "abschlag", "einzelDoppelt": true}, {"nr": "", "datum": "2027-03-21", "zeit": "09:00", "team": "", "gegner": "Limbacher Füchse", "liga": "Jugendoberliga U18 weiblich", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 28, "datum": "2027-04-03", "zeit": "00:00", "team": "mU16 I", "gegner": "Basket Bears Bernburg", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 78, "datum": "2027-04-03", "zeit": "10:00", "team": "mU14", "gegner": "MBC Weißenfels I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 15, "datum": "2027-04-03", "zeit": "10:00", "team": "USV Halle", "gegner": "BBC Red Eagles Zerbst", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 28, "datum": "2027-04-03", "zeit": "12:30", "team": "mU18", "gegner": "BBC Stendal", "liga": "Landesliga männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-03", "zeit": "14:30", "team": "2. Herren", "gegner": "PlayOff - Runde 5", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 47, "datum": "2027-04-04", "zeit": "00:00", "team": "mU12 II", "gegner": "SV Halle II", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 36, "datum": "2027-04-04", "zeit": "10:00", "team": "mU14", "gegner": "MBC Weißenfels II", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 53, "datum": "2027-04-04", "zeit": "12:30", "team": "mU16 II", "gegner": "BSW Sixers", "liga": "Bezirksliga Süd/Anhalt/Harz männlich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-04", "zeit": "14:30", "team": "mU16 I", "gegner": "Basket Bears Bernburg", "liga": "Bezirksliga Halle/Harz männlich U18", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-10", "zeit": "09:00", "team": "", "gegner": "Frühlingsturnier", "liga": "Spielrunde U10 mixed Ost/Süd", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 0, "lsd": 0, "art": "ohne", "einzelDoppelt": false}, {"nr": 28, "datum": "2027-04-10", "zeit": "10:00", "team": "USV Halle II", "gegner": "BSW Sixers", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 30, "datum": "2027-04-10", "zeit": "12:30", "team": "USV Halle I", "gegner": "BBC Halle", "liga": "Oberliga Damen", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 25, "lsd": 30, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-10", "zeit": "14:30", "team": "2. Herren", "gegner": "PlayOff - Runde 6", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 53, "datum": "2027-04-11", "zeit": "10:00", "team": "wU16 II", "gegner": "BSW Sixers", "liga": "Bezirksliga weiblich U16", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 86, "datum": "2027-04-17", "zeit": "10:00", "team": "mU14", "gegner": "BBC Halle I", "liga": "Landesliga männlich U14", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 20, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 44, "datum": "2027-04-17", "zeit": "12:30", "team": "wU16 (Kooperation MDL)", "gegner": "Team Leipzig", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 42, "datum": "2027-04-18", "zeit": "10:00", "team": "mU14", "gegner": "SV Halle", "liga": "Bezirksliga Halle/Weißenfels männlich U14", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": 9709, "datum": "2027-04-18", "zeit": "12:30", "team": "wU14", "gegner": "Limbacher Füchse 2", "liga": "Bezirksliga Leipzig U14 wbl", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-04-24", "zeit": "13:00", "team": "2. Herren", "gegner": "Ligapokal Rund 2", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": 53, "datum": "2027-04-25", "zeit": "10:00", "team": "mU12 II", "gegner": "BSW Sixers II", "liga": "Bezirksliga Halle/Anhalt/Weißenfels männlich U12", "halle": "Sporthalle am Holzplatz", "adresse": "Holzplatz 6 06110 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": false}, {"nr": 50, "datum": "2027-05-08", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "ChemCats Chemnitz wU14", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-05-08", "zeit": "13:00", "team": "2. Herren", "gegner": "Ligapokal Rund 3", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}, {"nr": "", "datum": "2027-05-15", "zeit": "10:00", "team": "wU16 (Kooperation MDL)", "gegner": "Chemcats Chemnitz2", "liga": "Mitteldeutsche Liga wU16", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 19, "lsd": 25, "art": "jugend", "einzelDoppelt": true}, {"nr": "", "datum": "2027-05-29", "zeit": "13:00", "team": "2. Herren", "gegner": "Ligapokal Rund 4", "liga": "Oberliga Herren", "halle": "Giebichenstein Gymnasium \"Thomas Müntzer\", 2-fach Halle", "adresse": "Friedenstraße 31a 06114 Halle", "lse": 35, "lsd": 45, "art": "erwachsen", "einzelDoppelt": true}]};
 const SPIELE = (DATEN && DATEN.spiele) || [];
-const KM_SATZ = 0.30;
+const KM_SATZ_CT = 30;                       // Fahrtkosten je Kilometer, in Cent
+const KM_SATZ_TEXT = "0,30 €";
+/* Fassung der Gebuehrenordnung, nach der gerechnet wird. Steht auf jeder
+   Quittung und in jedem Vorgang, damit eine alte Abrechnung nachrechenbar
+   bleibt, wenn der Verband die Saetze aendert. */
+const TARIF_STAND = (DATEN && DATEN.tarifStand) || "BVSA-SRO 06/2026";
 const EINREICHEN_MAIL = (DATEN && DATEN.einreichenMail) || "";
 const WT = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 const eur = n => n.toLocaleString("de-DE", {style:"currency", currency:"EUR", minimumFractionDigits:2});
+const eurCt = ct => eur(ct / 100);           // alle Betraege werden in Cent gerechnet
 const dstr = iso => { const d = new Date(iso + "T12:00:00"); return WT[d.getDay()] + " " + d.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric"}); };
 
 let aktiv = null, anzahl = 2, rolle = "trainer";
-let gesammelt = [];      // abgeschlossene Spiele des Tages: [{spiel, posten}]
+let gesammelt = [];      // erfasste Spiele des Tages: [{spiel, posten}]
+let abgeschlossen = false;   // Arbeitsstand festgeschrieben?
+let abschlussIds = {};       // Gruppenindex -> Abrechnungsnummer
+let gedruckt = false;        // wurde seit der letzten Unterschrift gedruckt?
 let vorlage = null;      // Namen/Lizenz/Adresse aus dem vorigen Spiel
 const $ = id => document.getElementById(id);
 
@@ -684,7 +739,7 @@ function mapsLink(i) {
            "&waypoints=" + encodeURIComponent(ziel) + "&destination=" + encodeURIComponent(adr) + "&travelmode=driving";
 }
 
-function summeVon(posten) { return posten.reduce((a, p) => a + p.gebuehr + p.fahrt, 0); }
+function summeVon(posten) { return posten.reduce((a, p) => a + p.gebuehr_ct + p.fahrt_ct, 0); }
 
 /* Alle Quittungen dieses Tages: die bereits abgeschlossenen Spiele und das
    Spiel, an dem gerade gearbeitet wird. */
@@ -707,11 +762,11 @@ function rechne() {
       if (verdoppelt) g *= 2;
       const folge = $("folge" + i) ? $("folge" + i).checked : false;
       const km = folge ? 0 : (parseFloat($("km" + i) ? $("km" + i).value : "") || 0);
-      const f = km > 0 ? km * KM_SATZ : 0;
       const feldA = $("adr" + i);
       const adrWert = feldA ? (feldA.hidden ? (feldA.dataset.wert || "") : feldA.value) : "";
       posten.push({i, name: ($("nam" + i) ? $("nam" + i).value.trim() : ""), plz: plzAus(adrWert),
-                   stufe: STUFEN[stufe] || stufe, gebuehr: g, km, fahrt: f, folge, verdoppelt});
+                   stufe: STUFEN[stufe] || stufe, gebuehr_ct: Math.round(g * 100), km,
+                   fahrt_ct: km > 0 ? Math.round(km * KM_SATZ_CT) : 0, folge, verdoppelt});
     }
   }
   letzteBelege = posten;
@@ -719,6 +774,7 @@ function rechne() {
   tagesliste();
   erstattungRendern();
   mailLink();
+  if (abgeschlossen) eingabenSperren(true);
 
   if (!aktiv && !gesammelt.length) { t.hidden = true; return; }
   t.hidden = false;
@@ -741,13 +797,13 @@ function rechne() {
   }
 
   const alle = gruppen().map(g => g.posten).reduce((a, b) => a.concat(b), []);
-  const gebuehr = alle.reduce((a, p) => a + p.gebuehr, 0);
-  const fahrt = alle.reduce((a, p) => a + p.fahrt, 0);
+  const gebuehr = alle.reduce((a, p) => a + p.gebuehr_ct, 0);
+  const fahrt = alle.reduce((a, p) => a + p.fahrt_ct, 0);
   const gesamt = gebuehr + fahrt;
   const spiele = gruppen().length;
-  sum.textContent = rolle === "sr" ? eur(gesamt) : eur(Math.ceil(gesamt / 5) * 5);
+  sum.textContent = rolle === "sr" ? eurCt(gesamt) : eurCt(Math.ceil(gesamt / 500) * 500);
   split.innerHTML = (spiele > 1 ? `${spiele} Spiele<br>` : "") +
-    `Gebühr ${eur(gebuehr)}<br>Fahrtkosten ${eur(fahrt)}<br>zusammen ${eur(gesamt)}`;
+    `Gebühr ${eurCt(gebuehr)}<br>Fahrtkosten ${eurCt(fahrt)}<br>zusammen ${eurCt(gesamt)}`;
 }
 
 function tagesliste() {
@@ -757,7 +813,7 @@ function tagesliste() {
   box.innerHTML = gesammelt.map((g, idx) => `
     <div class="zeile">
       <span class="w">${g.spiel.team ? g.spiel.team + " – " : ""}${g.spiel.gegner}${g.spiel.zeit ? " · " + g.spiel.zeit + " Uhr" : ""}</span>
-      <span class="b num">${eur(summeVon(g.posten))}</span>
+      <span class="b num">${eurCt(summeVon(g.posten))}</span>
       <button type="button" class="linkbtn" data-weg="${idx}">entfernen</button>
     </div>`).join("");
   box.querySelectorAll("[data-weg]").forEach(b =>
@@ -825,25 +881,27 @@ function signaturAktivieren() {
 
 function quittungen() {
   const box = $("quittungen"), s4 = $("s4"), g = gruppen();
-  if (!g.length) { s4.hidden = true; box.innerHTML = ""; return; }
+  if (!g.length) { s4.hidden = true; $("s5").hidden = true; box.innerHTML = ""; return; }
   s4.hidden = false;
+  $("s5").hidden = false;
   const mehrere = g.length > 1;
   box.innerHTML = g.map(gr => {
     const sp = gr.spiel;
     return gr.posten.map(p => `
     <div class="beleg">
       <h4>Quittung${mehrere ? " " + (gr.idx + 1) : ""} · ${p.name || "Schiedsrichter " + p.i}</h4>
+      <div class="idzeile">${abschlussIds[gr.idx] ? `Abrechnung <span class="num">${abschlussIds[gr.idx]}</span> · ` : ""}Grundlage ${TARIF_STAND}</div>
       <dl>
         <dt>Spiel</dt><dd>${sp.team ? sp.team + " – " : ""}${sp.gegner}</dd>
         <dt>Datum / Anwurf</dt><dd class="num">${dstr(sp.datum)}${sp.zeit ? ", " + sp.zeit + " Uhr" : ""}</dd>
         <dt>Spielklasse / Nr.</dt><dd>${sp.liga}${sp.nr ? " · " + sp.nr : ""}</dd>
         <dt>Halle</dt><dd>${sp.halle || "—"}</dd>
         <dt>Lizenzstufe</dt><dd>${p.stufe}</dd>
-        <dt>Spielleitungsgebühr</dt><dd class="num">${eur(p.gebuehr)}${p.verdoppelt ? " (doppelt, nur ein SR)" : ""}</dd>
+        <dt>Spielleitungsgebühr</dt><dd class="num">${eurCt(p.gebuehr_ct)}${p.verdoppelt ? " (doppelt, nur ein SR)" : ""}</dd>
         <dt>Anfahrt ab</dt><dd class="num">${p.plz || "—"}</dd>
-        <dt>Fahrtkosten</dt><dd class="num">${p.km ? p.km + " km × 0,30 € = " + eur(p.fahrt) : (p.folge ? "entfällt (Folgespiel in derselben Halle)" : eur(0))}</dd>
+        <dt>Fahrtkosten</dt><dd class="num">${p.km ? p.km + " km × " + KM_SATZ_TEXT + " = " + eurCt(p.fahrt_ct) : (p.folge ? "entfällt (Folgespiel in derselben Halle)" : eurCt(0))}</dd>
       </dl>
-      <div class="gesamt"><span>Ausgezahlt</span><span class="num">${eur(p.gebuehr + p.fahrt)}</span></div>
+      <div class="gesamt"><span>Ausgezahlt</span><span class="num">${eurCt(p.gebuehr_ct + p.fahrt_ct)}</span></div>
       <div class="sigpad">
         <canvas id="sig${gr.idx}_${p.i}" width="600" height="150" aria-label="Unterschriftenfeld Schiedsrichter"></canvas>
         <div class="sigrow">
@@ -867,7 +925,7 @@ function erstattungRendern() {
       <dt>IBAN</dt><dd class="num">${iban || "—"}</dd>
       <dt>Verwendungszweck</dt><dd>Schiedsrichterkosten ${gruppen().map(gr => gr.spiel.team || gr.spiel.gegner).join(", ")}</dd>
     </dl>
-    <div class="gesamt"><span>Betrag</span><span class="num">${eur(gesamt)}</span></div>`;
+    <div class="gesamt"><span>Betrag</span><span class="num">${eurCt(gesamt)}</span></div>`;
 }
 
 let letzteBelege = [];
@@ -879,7 +937,7 @@ function belegText() {
     const sp = gr.spiel;
     const kopf = `${sp.team ? sp.team + " – " : ""}${sp.gegner}\n${dstr(sp.datum)}${sp.zeit ? ", " + sp.zeit + " Uhr" : ""}\n${sp.liga}${sp.nr ? " · Spiel " + sp.nr : ""}\n${sp.halle || ""}`;
     const zeilen = gr.posten.map(p =>
-      `\n${p.name || "Schiedsrichter " + p.i} (${p.stufe})${p.plz ? "\n  Anfahrt ab: " + p.plz : ""}\n  Spielleitungsgebühr: ${eur(p.gebuehr)}${p.verdoppelt ? " (doppelt, nur ein SR)" : ""}\n  Fahrtkosten: ${p.km ? p.km + " km × 0,30 € = " + eur(p.fahrt) : (p.folge ? "entfällt (Folgespiel, gleiche Halle)" : eur(0))}\n  Ausgezahlt: ${eur(p.gebuehr + p.fahrt)}`).join("");
+      `\n${p.name || "Schiedsrichter " + p.i} (${p.stufe})${p.plz ? "\n  Anfahrt ab: " + p.plz : ""}\n  Spielleitungsgebühr: ${eurCt(p.gebuehr_ct)}${p.verdoppelt ? " (doppelt, nur ein SR)" : ""}\n  Fahrtkosten: ${p.km ? p.km + " km × " + KM_SATZ_TEXT + " = " + eurCt(p.fahrt_ct) : (p.folge ? "entfällt (Folgespiel, gleiche Halle)" : eurCt(0))}\n  Ausgezahlt: ${eurCt(p.gebuehr_ct + p.fahrt_ct)}`).join("");
     return kopf + zeilen;
   });
   const summe = g.reduce((a, gr) => a + summeVon(gr.posten), 0);
@@ -887,8 +945,8 @@ function belegText() {
   const konto = (iban || inh)
     ? `\n\n${rolle === "sr" ? "Auszahlung an" : "Erstattung an"}: ${inh || "—"}\nIBAN: ${iban || "—"}` : "";
   return "Schiedsrichterkosten\n\n" + teile.join("\n\n---\n\n") +
-         `\n\nGesamt (${g.length} ${g.length === 1 ? "Spiel" : "Spiele"}): ${eur(summe)}` + konto +
-         "\nGrundlage: BVSA-Schiedsrichterordnung 06/2026, Anlage 1.";
+         `\n\nGesamt (${g.length} ${g.length === 1 ? "Spiel" : "Spiele"}): ${eurCt(summe)}` + konto +
+         `\nGrundlage: ${TARIF_STAND}, Anlage 1.`;
 }
 
 function mailLink() {
@@ -897,7 +955,7 @@ function mailLink() {
   a.hidden = false;
   const summe = g.reduce((x, gr) => x + summeVon(gr.posten), 0);
   const erst = g[0].spiel;
-  const betreff = `Schiedsrichterkosten ${erst.team || ""} ${dstr(erst.datum)}${g.length > 1 ? " (" + g.length + " Spiele)" : ""} – ${eur(summe)}`.replace(/\s+/g, " ").trim();
+  const betreff = `Schiedsrichterkosten ${erst.team || ""} ${dstr(erst.datum)}${g.length > 1 ? " (" + g.length + " Spiele)" : ""} – ${eurCt(summe)}`.replace(/\s+/g, " ").trim();
   const body = belegText() + "\n\nZweck: Schiedsrichter\nMannschaft: " + (erst.team || "(bitte eintragen)") +
                `\n\nDie unterschriebene${g.length > 1 || g[0].posten.length > 1 ? "n" : ""} Quittung${g.length > 1 || g[0].posten.length > 1 ? "en" : ""} hänge ich als PDF an.`;
   const ziel = rolle === "sr" ? "" : EINREICHEN_MAIL;
@@ -992,6 +1050,188 @@ $("count").addEventListener("click", e => {
   [...$("count").children].forEach(x => x.setAttribute("aria-pressed", String(Number(x.dataset.n) === anzahl)));
   baueRefs(); rechne();
 });
+/* ---- Abgeschlossene Vorgaenge ------------------------------------------
+   Ein Vorgang je Spiel — abgerechnet wird je Spiel, nicht je Spieltag und
+   nicht je Schiedsrichter. Gespeichert wird nur, was zum Wiedererkennen und
+   fuer eine Rueckfrage noetig ist: keine Anschrift, keine Unterschrift, keine
+   Kontodaten. Der Beleg bleibt das PDF. */
+const VORGANG_SPEICHER = "usv-sr-vorgaenge";
+const VORGANG_SCHEMA = 1;
+
+function vorgaengeLesen() {
+  try {
+    const roh = JSON.parse(localStorage.getItem(VORGANG_SPEICHER) || "null");
+    if (!roh || roh.v !== VORGANG_SCHEMA || !Array.isArray(roh.liste)) return [];
+    return roh.liste;
+  } catch (e) { return []; }
+}
+function vorgaengeSchreiben(liste) {
+  try { localStorage.setItem(VORGANG_SPEICHER, JSON.stringify({v: VORGANG_SCHEMA, liste})); } catch (e) {}
+}
+
+/* Abrechnungsnummer aus Datum, Spielnummer und vier Zufallszeichen: eindeutig
+   ohne zentrale Vergabe, auch wenn mehrere Trainer gleichzeitig abrechnen.
+   Verwechselbare Zeichen (0/O, 1/I) sind ausgelassen. */
+const ID_ZEICHEN = "ACDEFGHJKLMNPQRSTUVWXYZ2345679";
+function zufallsteil(n) {
+  let werte;
+  try {
+    werte = crypto.getRandomValues(new Uint32Array(n));
+  } catch (e) {
+    werte = Array.from({length: n}, () => Math.floor(Math.random() * 4294967296));
+  }
+  return Array.from(werte, x => ID_ZEICHEN[x % ID_ZEICHEN.length]).join("");
+}
+function abrechnungsId(spiel) {
+  const d = (spiel.datum || "").replace(/-/g, "") || "00000000";
+  const nr = String(spiel.nr || "").replace(/[^0-9A-Za-z]/g, "").slice(0, 6) || "X";
+  return `SR-${d}-${nr}-${zufallsteil(4)}`;
+}
+function schonAbgerechnet(spiel) {
+  return vorgaengeLesen().find(v =>
+    v.spiel.datum === spiel.datum &&
+    String(v.spiel.nr || "") === String(spiel.nr || "") &&
+    (v.spiel.gegner || "") === (spiel.gegner || ""));
+}
+
+function zahlartFuellen() {
+  const sel = $("zahlart"), vorher = sel.value;
+  const opt = rolle === "sr"
+    ? [["bar_erhalten", "bar erhalten"], ["offen", "noch offen — wird überwiesen"]]
+    : [["bar_ausgelegt", "bar, von mir ausgelegt"], ["bar_kasse", "bar, aus der Spieltagskasse"], ["offen", "noch offen"]];
+  sel.innerHTML = opt.map(([w, t]) => `<option value="${w}">${t}</option>`).join("");
+  if (opt.some(o => o[0] === vorher)) sel.value = vorher;
+}
+
+/* Sperrt die Erfassung, sobald festgeschrieben wurde. Unterschreiben und
+   Drucken bleiben moeglich — beides passiert erst nach der Auszahlung. */
+function eingabenSperren(an) {
+  ["q","monat","ebene","alter","geschlecht","fpaar","fnr","fdatum","fhalle","fliga","freiOk","weiter"]
+    .forEach(id => { const e = $(id); if (e) e.disabled = an; });
+  document.querySelectorAll("#refs input, #refs select, #count button, #tagesliste button, #rolle button")
+    .forEach(e => { e.disabled = an; });
+  document.querySelectorAll("#results li").forEach(li => {
+    li.style.pointerEvents = an ? "none" : "";
+    li.style.opacity = an ? ".45" : "";
+  });
+}
+
+function abschliessen() {
+  const g = gruppen();
+  if (!g.length) return;
+  const doppelt = g.map(gr => schonAbgerechnet(gr.spiel)).filter(Boolean);
+  if (doppelt.length && !confirm(
+      `Für ${doppelt.length === 1 ? "dieses Spiel gibt es schon eine Abrechnung" : "diese Spiele gibt es schon Abrechnungen"}: ` +
+      doppelt.map(v => v.id).join(", ") + ". Trotzdem noch einmal abschließen?")) return;
+
+  const liste = vorgaengeLesen();
+  const jetzt = new Date().toISOString();
+  abschlussIds = {};
+  g.forEach(gr => {
+    const id = abrechnungsId(gr.spiel);
+    abschlussIds[gr.idx] = id;
+    liste.unshift({
+      id, abgeschlossen_am: jetzt, tarif_stand: TARIF_STAND, rolle,
+      zahlungsart: $("zahlart").value,
+      spiel: {datum: gr.spiel.datum, zeit: gr.spiel.zeit || "", nr: gr.spiel.nr || "",
+              team: gr.spiel.team || "", gegner: gr.spiel.gegner || "",
+              liga: gr.spiel.liga || "", halle: gr.spiel.halle || ""},
+      positionen: gr.posten.map(p => ({name: p.name, stufe: p.stufe, gebuehr_ct: p.gebuehr_ct,
+                                       km: p.km, fahrt_ct: p.fahrt_ct,
+                                       verdoppelt: p.verdoppelt, folgespiel: p.folge})),
+      summe_gebuehr_ct: gr.posten.reduce((a, p) => a + p.gebuehr_ct, 0),
+      summe_fahrt_ct: gr.posten.reduce((a, p) => a + p.fahrt_ct, 0),
+      summe_ct: summeVon(gr.posten),
+      status: "abgeschlossen"
+    });
+  });
+  vorgaengeSchreiben(liste);
+  abgeschlossen = true;
+  vorgaengeAnzeigen();
+  rechne();                       // Quittungen neu rendern, jetzt mit Nummer
+  const ids = Object.keys(abschlussIds).sort((a, b) => a - b).map(k => abschlussIds[k]);
+  const ok = $("abschlussOk");
+  ok.hidden = false;
+  ok.innerHTML = `<strong>Festgeschrieben.</strong>
+    <span>${ids.length === 1 ? "Abrechnungsnummer" : "Abrechnungsnummern"}: <span class="num">${ids.join(", ")}</span></span>
+    <span>Jetzt unterschreiben lassen und „Drucken / als PDF sichern“ — die Nummer steht auf der Quittung.</span>`;
+  $("abschliessen").hidden = true;
+  $("neueAbrechnung").hidden = false;
+  $("zahlart").disabled = true;
+}
+
+function neueAbrechnung() {
+  if (Object.keys(unterschriften).length && !gedruckt &&
+      !confirm("Diese Abrechnung wurde noch nicht gedruckt. Die Unterschriften gehen verloren. Trotzdem eine neue beginnen?")) return;
+  abgeschlossen = false;
+  abschlussIds = {};
+  gesammelt = [];
+  vorlage = null;
+  aktiv = null;
+  letzteBelege = [];
+  gedruckt = false;
+  Object.keys(unterschriften).forEach(k => delete unterschriften[k]);
+  eingabenSperren(false);
+  $("zahlart").disabled = false;
+  $("abschliessen").hidden = false;
+  $("neueAbrechnung").hidden = true;
+  $("abschlussOk").hidden = true;
+  $("s2").hidden = true;
+  $("s3").hidden = true;
+  $("refs").innerHTML = "";
+  $("q").value = "";
+  zeigeTreffer();
+  rechne();
+  document.querySelector(".step").scrollIntoView({behavior: "smooth", block: "start"});
+}
+
+function vorgaengeAnzeigen() {
+  const liste = vorgaengeLesen(), box = $("vorgangBox");
+  $("vorgangAnzahl").textContent = liste.length;
+  box.hidden = liste.length === 0;
+  $("vorgangListe").innerHTML = liste.map((v, i) => `
+    <div class="vorgang">
+      <span class="titel">${v.spiel.team ? v.spiel.team + " – " : ""}${v.spiel.gegner || "Spiel"}</span>
+      <span class="betrag num">${eurCt(v.summe_ct)}</span>
+      <span class="chip ${v.status === "eingereicht" ? "weg" : "fertig"}">${v.status === "eingereicht" ? "eingereicht" : "abgeschlossen"}</span>
+      <span class="kennung">${dstr(v.spiel.datum)} · <span class="num">${v.id}</span></span>
+      <span class="tat">
+        ${v.status === "abgeschlossen" ? `<button type="button" class="linkbtn" data-ein="${i}">als eingereicht markieren</button>` : ""}
+        <button type="button" class="linkbtn" data-loesch="${i}">löschen</button>
+      </span>
+    </div>`).join("");
+  $("vorgangListe").querySelectorAll("[data-ein]").forEach(b => b.addEventListener("click", () => {
+    const l = vorgaengeLesen();
+    if (!l[b.dataset.ein]) return;
+    l[b.dataset.ein].status = "eingereicht";
+    l[b.dataset.ein].eingereicht_am = new Date().toISOString();
+    vorgaengeSchreiben(l);
+    vorgaengeAnzeigen();
+  }));
+  $("vorgangListe").querySelectorAll("[data-loesch]").forEach(b => b.addEventListener("click", () => {
+    const l = vorgaengeLesen();
+    if (!l[b.dataset.loesch]) return;
+    if (!confirm(`Abrechnung ${l[b.dataset.loesch].id} aus der Liste entfernen? Das PDF bleibt davon unberührt.`)) return;
+    l.splice(b.dataset.loesch, 1);
+    vorgaengeSchreiben(l);
+    vorgaengeAnzeigen();
+  }));
+}
+
+$("abschliessen").addEventListener("click", abschliessen);
+$("neueAbrechnung").addEventListener("click", neueAbrechnung);
+$("vorgaengeLoeschen").addEventListener("click", () => {
+  if (!confirm("Die ganze Liste von diesem Gerät entfernen? Die PDF bleiben davon unberührt.")) return;
+  vorgaengeSchreiben([]);
+  vorgaengeAnzeigen();
+});
+window.addEventListener("afterprint", () => { gedruckt = true; });
+window.addEventListener("beforeunload", e => {
+  if (!Object.keys(unterschriften).length || gedruckt) return;
+  e.preventDefault();
+  e.returnValue = "";
+});
+
 /* Rolle: Trainer zahlt aus und legt aus, Schiedsrichter rechnet die eigenen
    Spiele ab. Aendert Beschriftungen und wer auf der Quittung steht — die
    Saetze sind fuer beide dieselben. */
@@ -1014,6 +1254,7 @@ function rolleAnzeigen() {
   $("q4note").textContent = sr
     ? "Je Spiel eine Quittung. Vom Trainer unterschreiben lassen, als PDF sichern — eine für dich, eine für den Verein, der bezahlt."
     : "Je Schiedsrichter und Spiel eine Quittung — mit Lizenzstufe und Kilometern, damit der Betrag später nachvollziehbar ist. Unterschreiben lassen und mit der Abrechnung einreichen.";
+  zahlartFuellen();
   $("tabletNote").innerHTML = sr
     ? "<strong>So läuft es am Tablet:</strong> Angaben eintragen → unterschreiben lassen → „Drucken / als PDF sichern“ → „Quittung weiterleiten“ öffnet die Mail für Trainer, Staffelleiter oder Verein."
     : "<strong>So läuft es am Tablet:</strong> Schiedsrichter unterschreibt direkt im Feld → „Drucken / als PDF sichern“ → „Unterschrieben einreichen“ öffnet die Mail, PDF anhängen und abschicken.";
@@ -1085,9 +1326,10 @@ $("pLoeschen").addEventListener("click", () => {
 $("weiter").addEventListener("click", weiteresSpiel);
 
 rolleAnzeigen();
-$("foot").textContent = "Sätze nach BVSA-Schiedsrichterordnung 06/2026, Anlage 1 · Spielplan-Stand " + ((DATEN && DATEN.stand) || "");
+$("foot").textContent = `Sätze nach ${TARIF_STAND}, Anlage 1 · Spielplan-Stand ` + ((DATEN && DATEN.stand) || "");
 monateFuellen();
 listeAnzeigen();
+vorgaengeAnzeigen();
 zeigeTreffer();
 
 /* Fuer die Einbettung per iframe (z. B. TYPO3): meldet die Inhaltshoehe nach aussen,
