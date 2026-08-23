@@ -137,6 +137,9 @@
   .printbtn { padding: .65rem 1rem; border-radius: 9px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
   .printbtn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
   .hint { font-size: .78rem; color: var(--good); margin-top: .3rem; }
+  .hint.fehler { color: var(--warn); font-weight: 600; }
+  label .pflicht { color: var(--accent); font-weight: 700; }
+  input.fehlt, select.fehlt { border-color: var(--warn); }
   .adrbox { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .5rem .7rem; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); font-size: .88rem; }
   .linkbtn { background: none; border: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; font-size: .82rem; padding: 0; }
   details.frei { border-top: 1px solid var(--line); padding-top: .7rem; }
@@ -244,8 +247,10 @@
               </select>
             </div>
             <div>
-              <label for="fliga">Liga laut Spielplan</label>
-              <input type="text" id="fliga" placeholder="optional, z. B. Bezirksliga Halle" autocomplete="off">
+              <label for="fliga">Liga laut Spielplan <span class="pflicht" title="Pflichtangabe">*</span></label>
+              <input type="text" id="fliga" placeholder="z. B. Bezirksliga Halle/Harz männlich U18"
+                     autocomplete="off" required aria-describedby="fligaHint">
+              <div class="hint fehler" id="fligaHint" hidden>Bitte eintragen, wie die Liga im Spielplan heißt — sie steht als Spielklasse auf der Quittung.</div>
             </div>
           </div>
           <p class="note" id="satzInfo">Erst Spielebene wählen — Altersklasse und Mannschaft bestimmen mit, welcher Satz gilt.</p>
@@ -1011,10 +1016,23 @@ function freiAnzeigen() {
 ["ebene", "alter", "geschlecht"].forEach(id => $(id).addEventListener("change", freiAnzeigen));
 freiAnzeigen();
 
+$("fliga").addEventListener("input", () => {
+  $("fligaHint").hidden = true;
+  $("fliga").classList.remove("fehlt");
+});
+
 $("freiOk").addEventListener("click", () => {
   const t = tarifFrei();
   if (!t) { $("ebene").focus(); return; }
-  const liga = $("fliga").value.trim() || t.label;
+  /* Die Liga steht als Spielklasse auf der Quittung. Ohne sie waere der Beleg
+     nicht zuzuordnen — deshalb Pflicht, anders als Paarung, Nummer und Halle. */
+  const liga = $("fliga").value.trim();
+  if (!liga) {
+    $("fligaHint").hidden = false;
+    $("fliga").classList.add("fehlt");
+    $("fliga").focus();
+    return;
+  }
   waehle({
     nr: $("fnr").value.trim(), datum: $("fdatum").value || new Date().toISOString().slice(0, 10),
     zeit: "", team: "", gegner: $("fpaar").value.trim() || t.label, liga,

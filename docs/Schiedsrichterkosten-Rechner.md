@@ -26,7 +26,9 @@ Eingabeblöcke — gerechnet wird für beide Rollen identisch.
 
 1. **Spiel finden** — Suche nach Spielnummer, Gegner, Team oder Datum. Steht das Spiel nicht im
    Spielplan (Pokal, Turnier, fremde Liga), unter „Spielklasse direkt wählen" Spielebene,
-   Altersklasse und Mannschaft angeben.
+   Altersklasse und Mannschaft angeben. Die **Liga laut Spielplan ist dabei Pflicht** — sie steht
+   als Spielklasse auf der Quittung, ohne sie wäre der Beleg keinem Wettbewerb zuzuordnen. Paarung,
+   Spielnummer und Halle bleiben freiwillig.
 2. **Schiedsrichter erfassen** — Anzahl (zwei oder einer), je Person Name, Lizenzstufe, Anfahrt und
    Kilometer. Namen aus der lokalen Schiedsrichter-Liste füllen Lizenzstufe und PLZ automatisch.
 3. **Auszahlen und quittieren** — bar vor Spielbeginn, Quittung im Feld unterschreiben lassen.
@@ -236,5 +238,6 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 | Datum | Änderung |
 |---|---|
 | 17.08.2026 | Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail |
+| 23.08.2026 | Liga laut Spielplan bei manueller Spieleingabe verpflichtend |
 | 23.08.2026 | Version 1.1: Abrechnungsvorgänge mit eigener Nummer, Zahlungsart, Festschreiben der Beträge, Liste der eigenen Abrechnungen auf dem Gerät, Doppelschutz, Abrechnungsnummer und Tarifstand auf der Quittung, Beträge intern in Cent, Warnung vor dem Verlassen mit ungedruckter Unterschrift |
 | 22.08.2026 | Schiedsrichter-Sicht mit eigenem Profil; Tagesabrechnung mehrerer Spiele mit automatischem Fahrtkosten-Wegfall; Altersklasse, Spielebene und Mannschaft getrennt wählbar inkl. MDL; dritte Lizenzstufe LSC; IBAN-Feld mit Vierergruppierung und Prüfziffernkontrolle; Anzeigefehler bei „Anfahrt ab" behoben |
