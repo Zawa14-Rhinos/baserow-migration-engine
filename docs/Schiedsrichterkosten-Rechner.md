@@ -26,9 +26,10 @@ Eingabeblöcke — gerechnet wird für beide Rollen identisch.
 
 1. **Spiel finden** — Suche nach Spielnummer, Gegner, Team oder Datum. Steht das Spiel nicht im
    Spielplan (Pokal, Turnier, fremde Liga), unter „Spielklasse direkt wählen" Spielebene,
-   Altersklasse und Mannschaft angeben. Die **Liga laut Spielplan ist dabei Pflicht** — sie steht
-   als Spielklasse auf der Quittung, ohne sie wäre der Beleg keinem Wettbewerb zuzuordnen. Paarung,
-   Spielnummer und Halle bleiben freiwillig.
+   Altersklasse und Mannschaft angeben. Die **Liga laut Spielplan wird beim Abschließen gebraucht**
+   — sie steht als Spielklasse auf der Quittung. Aufhalten tut sie niemanden: Fehlt sie, wird das
+   Spiel trotzdem übernommen und die Angabe später eingefordert. Paarung, Spielnummer und Halle
+   bleiben freiwillig.
 2. **Schiedsrichter erfassen** — Anzahl (zwei oder einer), je Person Name, Lizenzstufe, Anfahrt und
    Kilometer. Namen aus der lokalen Schiedsrichter-Liste füllen Lizenzstufe und PLZ automatisch.
 3. **Auszahlen und quittieren** — bar vor Spielbeginn, Quittung im Feld unterschreiben lassen.
@@ -76,9 +77,12 @@ Ausgenommen sind U11/U12 und YSO; dort bleibt es beim einfachen Satz. Deshalb is
 bei der freien Erfassung ein eigenes Feld: Eine gemeinsame Auswahl für „Jugend" würde mU17 und mU12
 in denselben Topf werfen, obwohl sie sich in genau dieser Regel unterscheiden.
 
-**Fahrtkosten** — 0,30 €/km, Route Wohnort → Halle → Wohnort laut Google Maps, kürzeste Strecke.
-Wer direkt davor schon in derselben Halle gepfiffen hat, bekommt für das Folgespiel keine
-Fahrtkosten mehr.
+**Fahrtkosten** — 0,30 € je Kilometer, gerechnet auf die **Gesamtstrecke hin und zurück**: Route
+Wohnort → Halle → Wohnort, kürzeste Strecke laut Google Maps. Einzutragen ist also die Zahl, die
+Maps für diese Rundstrecke anzeigt — nicht die einfache Entfernung. Das Feld heißt deshalb
+„Kilometer hin und zurück", der vorbereitete Maps-Link „Hin- und Rückweg", und auf der Quittung
+steht „12 km hin und zurück × 0,30 €". Wer direkt davor schon in derselben Halle gepfiffen hat,
+bekommt für das Folgespiel keine Fahrtkosten mehr.
 
 **Tagegeld** — erst ab 8 Stunden Abwesenheit, bei einem normalen Heimspiel also nicht.
 
@@ -107,6 +111,27 @@ das Bargeld reicht. Auf der Quittung steht immer der centgenaue Betrag.
 
 Für Kombinationen ohne hinterlegten Satz (z. B. Oberliga Play-offs der Damen) zeigt der Rechner
 „Satz unbekannt — bitte beim Sportwart nachfragen", statt einen Wert zu erfinden.
+
+## Was wann geprüft wird
+
+Während der Erfassung hält nichts auf. Du kannst zwischen den Feldern hin- und herspringen, Dinge
+offen lassen und in beliebiger Reihenfolge arbeiten — auch ohne Auswahl. **Vollständig sein muss es
+erst beim Abschließen.**
+
+Dafür steht in Schritt 5 eine Liste „Zum Abschließen fehlt noch", die sich laufend aktualisiert.
+Jeder Punkt ist anklickbar und springt an die betreffende Stelle. Geprüft werden:
+
+| Angabe | Warum |
+|---|---|
+| Liga laut Spielplan | steht als Spielklasse auf der Quittung |
+| Name je Schiedsrichter | ohne ihn ist die Quittung niemandem zuzuordnen |
+| Anschrift je Schiedsrichter | verlangt die Geschäftsstelle für die Buchhaltung |
+| Unterschrift je Spiel | ohne sie ist der Beleg wertlos |
+| IBAN | nur wenn „bar, von mir ausgelegt" — sonst weiß der Verein nicht, wohin er erstattet |
+
+Bleibt etwas offen, fragt der Rechner beim Abschließen mit der vollständigen Liste nach und lässt
+sich übergehen. Erzwungen wird nichts: Wenn ein Schiedsrichter seine Anschrift partout nicht
+herausgibt, muss die Abrechnung trotzdem entstehen können.
 
 ## Aufbau der Seite
 
@@ -312,6 +337,7 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 | Datum | Änderung |
 |---|---|
 | 17.08.2026 | Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail |
+| 23.08.2026 | Prüfung auf Vollständigkeit erst beim Abschließen, mit laufender Lückenliste und Sprungmarken; Kilometer überall als Hin- und Rückweg benannt; Verweise auf basketball-bund.net ergänzt |
 | 23.08.2026 | Erstattungsangaben unter Schritt 5 verschoben; Fortschrittsleiste ergänzt; Quittungen werden während des Unterschreibens nicht mehr neu gezeichnet; Summenbalken tritt beim Unterschreiben zurück |
 | 23.08.2026 | Schiedsrichter-Liste nimmt aus TeamSL kopierte Trefferlisten an, mit Vorschau; Kontaktdaten und Lizenznummern werden verworfen, bekannte Namen aktualisiert |
 | 23.08.2026 | Offene Punkte als Issues #3 und #4 festgehalten |
