@@ -11,7 +11,7 @@ Ein generisches, Plugin-basiertes Werkzeug zur Migration von Stammdaten in [Base
 | `config/rules.yaml` | maschinenlesbare, bestätigte fachliche Regeln deines Projekts | regelmäßig |
 | `knowledge/knowledge.md` | Lessons Learned aus abgeschlossenen Importen | nach jedem Import |
 | `docs/` | Methodik: Skill, Workflows (Import/Commit/Post-Import), Roadmap | selten |
-| `tools/` | eigenständige Werkzeuge ohne Bezug zur Engine, je Werkzeug eine in sich geschlossene HTML-Datei ([Schiedsrichterkosten-Rechner](docs/Schiedsrichterkosten-Rechner.md)) | selten |
+| `tools/` | eigenständige Werkzeuge ohne Bezug zur Engine, je Werkzeug eine in sich geschlossene HTML-Datei — [Schiedsrichterkosten-Rechner](tools/schiedsrichter-rechner/README.md) ([Fachdoku](docs/Schiedsrichterkosten-Rechner.md), [Kurzanleitung](docs/Kurzanleitung%20Schiedsrichterkosten-Rechner.md)) | selten |
 
 `config/rules.yaml`, `config/decision_log.md` und `knowledge/knowledge.md` sind projektspezifisch und per `.gitignore` ausgeschlossen — kopiere die mitgelieferten `*.example.*`-Dateien und fülle sie mit den Regeln deines Projekts. Die Methodik dahinter steht in [`docs/Baserow Migration Assistant.md`](docs/Baserow%20Migration%20Assistant.md).
 

@@ -4,11 +4,21 @@ Ein Werkzeug für den Spieltag: Es beantwortet vor dem Spiel die Frage „wie vi
 mitnehmen?" und erzeugt nach dem Spiel die unterschriebene Quittung — für Trainer, die auslegen,
 und für Schiedsrichter, die ihre eigenen Spiele abrechnen.
 
+- **Version:** 1.2 (steht in der Fußzeile des Rechners)
 - **Veröffentlicht als Artifact:** <https://claude.ai/code/artifact/4390e68c-f2cd-40fd-ac38-e62f9c4a4d37>
 - **Quelle:** [`tools/schiedsrichter-rechner/index.html`](../tools/schiedsrichter-rechner/index.html) —
   eine einzelne, in sich geschlossene HTML-Datei ohne externe Abhängigkeiten
 - **Rechtliche Grundlage der Sätze:** BVSA-Schiedsrichterordnung 06/2026, Anlage 1
-- **Spielplan-Stand:** 17.08.2026 (im Datensatz als `DATEN.stand` gepflegt)
+- **Spielplan-Stand:** 17.08.2026, Einzelkorrekturen 23.08.2026
+
+**Weitere Dokumente**
+
+| Dokument | Wofür |
+|---|---|
+| [Kurzanleitung](Kurzanleitung%20Schiedsrichterkosten-Rechner.md) | eine Seite für den Spieltag, zum Weitergeben an Trainer und Schiedsrichter |
+| [Quelltext-README](../tools/schiedsrichter-rechner/README.md) | Aufbau der Datei, zentrale Funktionen, Regeln beim Ändern |
+| [Analyse und Schnitt](Rechner%20Version%201.1%20%E2%80%93%20Analyse%20und%20Schnitt.md) | Prozessgrenzen, Datenmodell, Offline-Konzept, möglicher Baserow-Weg |
+| [Prüfaufträge](Pr%C3%BCfauftrag%20Schiedsrichterkosten-Rechner.md) | drei Aufträge zum Weitergeben: Sätze, Werkzeug, Abrechnungswege |
 
 ## Für wen, und was es leistet
 
@@ -341,15 +351,45 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 
 ## Änderungshistorie
 
-| Datum | Änderung |
-|---|---|
-| 17.08.2026 | Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail |
-| 23.08.2026 | Alle Abschnitte von Anfang an sichtbar und anspringbar; Namen, Anschrift und Kilometer schon vor der Spielauswahl eintragbar, Eingaben überstehen die Auswahl |
-| 23.08.2026 | Prüfung auf Vollständigkeit erst beim Abschließen, mit laufender Lückenliste und Sprungmarken; Kilometer überall als Hin- und Rückweg benannt; Verweise auf basketball-bund.net ergänzt |
-| 23.08.2026 | Erstattungsangaben unter Schritt 5 verschoben; Fortschrittsleiste ergänzt; Quittungen werden während des Unterschreibens nicht mehr neu gezeichnet; Summenbalken tritt beim Unterschreiben zurück |
-| 23.08.2026 | Schiedsrichter-Liste nimmt aus TeamSL kopierte Trefferlisten an, mit Vorschau; Kontaktdaten und Lizenznummern werden verworfen, bekannte Namen aktualisiert |
-| 23.08.2026 | Offene Punkte als Issues #3 und #4 festgehalten |
-| 23.08.2026 | Vollständige Anschrift des Schiedsrichters auf der Quittung statt nur der Postleitzahl; Verlegungen im Rechner eintragbar; MDL-Spiel mU12 gegen ChemCats Chemnitz vom 27.09. auf den 03.10.2026 korrigiert |
-| 23.08.2026 | Liga laut Spielplan bei manueller Spieleingabe verpflichtend |
-| 23.08.2026 | Version 1.1: Abrechnungsvorgänge mit eigener Nummer, Zahlungsart, Festschreiben der Beträge, Liste der eigenen Abrechnungen auf dem Gerät, Doppelschutz, Abrechnungsnummer und Tarifstand auf der Quittung, Beträge intern in Cent, Warnung vor dem Verlassen mit ungedruckter Unterschrift |
-| 22.08.2026 | Schiedsrichter-Sicht mit eigenem Profil; Tagesabrechnung mehrerer Spiele mit automatischem Fahrtkosten-Wegfall; Altersklasse, Spielebene und Mannschaft getrennt wählbar inkl. MDL; dritte Lizenzstufe LSC; IBAN-Feld mit Vierergruppierung und Prüfziffernkontrolle; Anzeigefehler bei „Anfahrt ab" behoben |
+### Version 1.2 — 23.08.2026
+
+Aus dem ersten Praxiseinsatz und der Rückmeldung der Geschäftsstelle.
+
+- Vollständige Anschrift des Schiedsrichters auf der Quittung statt nur der Postleitzahl; fehlt
+  sie, wird sie angemahnt.
+- Verlegungen lassen sich im Rechner eintragen, ohne den hinterlegten Spielplan zu verändern; das
+  MDL-Spiel mU12 gegen ChemCats Chemnitz wurde vom 27.09. auf den 03.10.2026 korrigiert.
+- Die Schiedsrichter-Liste nimmt aus TeamSL kopierte Trefferlisten an, mit Vorschau. Kontaktdaten,
+  Lizenznummern und Tabellenköpfe werden verworfen, bekannte Namen aktualisiert statt verdoppelt.
+- Erstattungsangaben stehen unter Schritt 5 beim Abschließen statt zwischen den Quittungen.
+- Fortschrittsleiste unter der Kopfzeile; alle Abschnitte sind von Anfang an sichtbar und
+  anspringbar, Eingaben sind schon vor der Spielauswahl möglich und überstehen sie.
+- Vollständigkeit wird erst beim Abschließen geprüft — mit laufender Lückenliste und Sprungmarken
+  statt Sperren unterwegs.
+- Kilometer überall eindeutig als Hin- und Rückweg benannt; Verweise auf basketball-bund.net.
+- Behoben: Quittungen wurden während des Unterschreibens neu gezeichnet und verschluckten den
+  Strich; der Summenbalken überdeckte das Unterschriftenfeld am unteren Rand.
+
+### Version 1.1 — 23.08.2026
+
+- Abrechnungsvorgänge mit eigener Nummer (`SR-JJJJMMTT-Spielnr-XXXX`), Zahlungsart und
+  festgeschriebenen Beträgen.
+- Liste der eigenen Abrechnungen auf dem Gerät, Schutz vor Doppel-Einreichung.
+- Abrechnungsnummer und Tarifstand auf der Quittung — der Tarifstand fehlte auf dem Ausdruck bisher
+  ganz, weil die Fußzeile nicht mitgedruckt wird.
+- Beträge intern in Cent als Ganzzahl; Warnung beim Verlassen mit ungedruckter Unterschrift.
+- Liga laut Spielplan bei manueller Spieleingabe eingefordert (seit 1.2 erst beim Abschließen).
+
+### Version 1.0.1 — 22.08.2026
+
+- Schiedsrichter-Sicht mit eigenem Profil neben der Trainer-Sicht.
+- Tagesabrechnung mehrerer Spiele mit automatischem Wegfall der Fahrtkosten beim Folgespiel.
+- Spielebene, Altersklasse und Mannschaft getrennt wählbar, Mitteldeutsche Liga ergänzt.
+- Dritte Lizenzstufe LSC für Ligen, in denen die Gebühr erst dort steigt.
+- IBAN-Feld mit Vierergruppierung und Prüfziffernkontrolle.
+- Behoben: leere „Hinterlegt"-Box neben dem Adressfeld; Kilometer-Vorschlag überschrieb den
+  Folgespiel-Haken.
+
+### Version 1.0 — 17.08.2026
+
+Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail.

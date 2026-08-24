@@ -495,6 +495,9 @@ const KM_SATZ_TEXT = "0,30 €";
    Quittung und in jedem Vorgang, damit eine alte Abrechnung nachrechenbar
    bleibt, wenn der Verband die Saetze aendert. */
 const TARIF_STAND = (DATEN && DATEN.tarifStand) || "BVSA-SRO 06/2026";
+/* Steht in der Fußzeile, damit bei einer Rückfrage klar ist, welche Fassung
+   jemand vor sich hat — die Datei wird auch heruntergeladen weitergegeben. */
+const VERSION = "1.2";
 const EINREICHEN_MAIL = (DATEN && DATEN.einreichenMail) || "";
 const WT = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 const eur = n => n.toLocaleString("de-DE", {style:"currency", currency:"EUR", minimumFractionDigits:2});
@@ -1662,7 +1665,8 @@ rolleAnzeigen();
 baueRefs();
 rechne();
 fortschritt();
-$("foot").textContent = `Sätze nach ${TARIF_STAND}, Anlage 1 · Spielplan-Stand ` + ((DATEN && DATEN.stand) || "") +
+$("foot").textContent = `Version ${VERSION} · Sätze nach ${TARIF_STAND}, Anlage 1 · Spielplan-Stand ` +
+  ((DATEN && DATEN.stand) || "") +
   (DATEN && DATEN.korrigiert ? `, Einzelkorrekturen ${DATEN.korrigiert}` : "");
 monateFuellen();
 listeAnzeigen();
