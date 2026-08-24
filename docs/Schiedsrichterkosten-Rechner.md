@@ -157,6 +157,40 @@ die über die Abschlagszahlung des Vereins laufen, `art: "ohne"` für Spielrunde
 Nach jeder Spielplanänderung `stand` mitziehen — er steht in der Fußzeile und ist für den Nutzer
 das einzige Signal, wie aktuell die Daten sind.
 
+## Schiedsrichter aus TeamSL übernehmen
+
+Der Rechner spricht **nicht** mit basketball-bund.net. Das geht technisch nicht (der Browser lässt
+eine Seite nicht auf eine fremde Website zugreifen, und die veröffentlichte Fassung darf gar keine
+fremden Server kontaktieren) und wäre auch der falsche Weg: Ein Passwortfenster für einen fremden
+Dienst ist genau das Muster, an dem man Phishing erkennt.
+
+Stattdessen wandern die Daten per Zwischenablage: In TeamSL die Trefferliste der
+Schiedsrichter-Adressen markieren, kopieren und unter „Schiedsrichter-Liste auf diesem Gerät"
+einfügen. Der Rechner erkennt Spalten, die mit Tabulator, Semikolon, mehreren Leerzeichen oder
+einem senkrechten Strich getrennt sind, und liest daraus Name, Lizenzstufe und Anschrift.
+
+Dabei gilt:
+
+- **Lizenzstufen werden übersetzt.** TeamSL führt sie als Buchstaben (A bis E), der Rechner als
+  LSA bis LSE.
+- **E-Mail-Adressen und Telefonnummern werden verworfen**, auch wenn sie in der kopierten Liste
+  stehen. Sie werden weder angezeigt noch gespeichert.
+- **Lizenznummern werden ignoriert** — für die Abrechnung sind sie ohne Belang.
+- **Die Kopfzeile der kopierten Tabelle wird übersprungen** — zwei Spaltenüberschriften in einer
+  Zeile genügen als Erkennungsmerkmal.
+- **Zeilen ohne erkennbaren Namen** werden nicht übernommen, sondern in der Vorschau als „nicht
+  erkannt" ausgewiesen.
+- **Bekannte Namen werden aktualisiert**, nicht verdoppelt; die Anschrift landet gleich im
+  Adressgedächtnis, sodass sie beim nächsten Spiel sofort dasteht.
+
+Unter dem Eingabefeld steht, wie viele Zeilen gelesen wurden und was aus jeder geworden ist. Passt
+etwas nicht, lässt sich die Zeile im Textfeld korrigieren und erneut übernehmen — das Format muss
+also nicht auf Anhieb passen.
+
+Der dauerhafte Weg bleibt ein anderer: Die Adressen gehören dem Verein, nicht dem einzelnen Tablet.
+Sobald sie in Baserow gepflegt sind (`Personen`, `Schiedsrichterprofile`), sollte der Rechner sie
+von dort bekommen statt aus der Zwischenablage.
+
 ## Was auf dem Gerät bleibt
 
 Der Rechner sendet nichts an einen Server; alles läuft im Browser. Lokal gespeichert werden
@@ -260,6 +294,7 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 | Datum | Änderung |
 |---|---|
 | 17.08.2026 | Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail |
+| 23.08.2026 | Schiedsrichter-Liste nimmt aus TeamSL kopierte Trefferlisten an, mit Vorschau; Kontaktdaten und Lizenznummern werden verworfen, bekannte Namen aktualisiert |
 | 23.08.2026 | Offene Punkte als Issues #3 und #4 festgehalten |
 | 23.08.2026 | Vollständige Anschrift des Schiedsrichters auf der Quittung statt nur der Postleitzahl; Verlegungen im Rechner eintragbar; MDL-Spiel mU12 gegen ChemCats Chemnitz vom 27.09. auf den 03.10.2026 korrigiert |
 | 23.08.2026 | Liga laut Spielplan bei manueller Spieleingabe verpflichtend |
