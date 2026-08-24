@@ -63,9 +63,11 @@ sind das zwei verschiedene.
 - **Die Unterschrift.** Sie ist ein personenbezogenes Merkmal mit hohem Missbrauchswert. Auf dem
   PDF ist sie Beleg, in einer Datenbank ist sie ein Risiko ohne Zusatznutzen. Im Datensatz genügt
   `unterschrift_vorhanden` als Ja/Nein.
-- **Die Anschrift.** Der Rechner speichert sie heute lokal, zeigt aber nur die PLZ. Für die
-  Übertragung ist selbst die PLZ verzichtbar: Nachvollziehbar ist die Fahrtkostenzeile schon über
-  die Kilometerzahl. **Vorschlag:** PLZ auf dem Papierbeleg belassen, nicht mit übertragen.
+- **Die Anschrift.** *Überholt am 23.08.2026:* Die Geschäftsstelle verlangt die vollständige
+  Anschrift auf der Quittung, sonst wird der Beleg nicht angenommen. Sie steht deshalb auf dem PDF.
+  Für die **Übertragung** in eine Datenbank bleibt sie verzichtbar — nachvollziehbar ist die
+  Fahrtkostenzeile schon über die Kilometerzahl —, und genau so ist es umgesetzt: auf dem Beleg ja,
+  im gespeicherten Vorgang nein.
 - **Die IBAN der Schiedsrichter.** Solange bar gezahlt wird, gibt es keinen Grund, sie überhaupt zu
   erheben.
 - **Die IBAN des Auslegenden.** Sie ist Stammdatum einer Person, kein Merkmal eines Spiels. In
