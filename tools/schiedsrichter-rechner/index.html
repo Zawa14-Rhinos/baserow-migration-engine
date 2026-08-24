@@ -322,10 +322,10 @@
     </div>
   </section>
 
-  <section class="step" id="s2" hidden>
+  <section class="step" id="s2">
     <div class="head"><span class="k">2</span><h2>Spiel</h2></div>
     <div class="body">
-      <div class="game" id="game"></div>
+      <div class="game" id="game"><div class="m">Noch kein Spiel gewählt — such es oben unter Schritt 1.</div></div>
       <div class="tags" id="tags"></div>
       <details class="frei" id="terminBox">
         <summary>Termin oder Halle stimmt nicht?</summary>
@@ -342,7 +342,7 @@
     </div>
   </section>
 
-  <section class="step" id="s3" hidden>
+  <section class="step" id="s3">
     <div class="head"><span class="k">3</span><h2>Schiedsrichter</h2></div>
     <div class="body">
       <div>
@@ -352,12 +352,13 @@
           <button type="button" data-n="1" aria-pressed="false">nur einer</button>
         </div>
       </div>
+      <p class="note" id="s3Hinweis" hidden>Namen kannst du schon eintragen — die Beträge erscheinen, sobald oben ein Spiel gewählt ist.</p>
       <div id="refs" style="display:flex;flex-direction:column;gap:.7rem"></div>
       <p class="note" id="oneNote" hidden></p>
     </div>
   </section>
 
-  <section class="step" id="s4" hidden>
+  <section class="step" id="s4">
     <div class="head"><span class="k">4</span><h2>Quittung</h2></div>
     <div class="body">
       <div class="tagesliste" id="tagesliste" hidden></div>
@@ -376,7 +377,7 @@
     </div>
   </section>
 
-  <section class="step" id="s5" hidden>
+  <section class="step" id="s5">
     <div class="head"><span class="k">5</span><h2>Abschließen</h2></div>
     <div class="body">
       <p class="note" id="s5note">Beim Abschließen bekommt jedes Spiel eine Abrechnungsnummer, die Beträge werden festgeschrieben und der Vorgang landet in deiner Liste auf diesem Gerät. Unterschreiben und Drucken geht danach weiter.</p>
@@ -720,7 +721,13 @@ function zeigeTreffer() {
 
 function spielKopf() {
   const s = aktiv;
-  if (!s) return;
+  if (!s) {
+    $("game").innerHTML = '<div class="m">Noch kein Spiel gewählt — such es oben unter Schritt 1.</div>';
+    $("tags").innerHTML = "";
+    $("terminBox").hidden = true;
+    return;
+  }
+  $("terminBox").hidden = false;
   $("game").innerHTML = `<div class="t">${s.team ? s.team + " – " : ""}${s.gegner}</div>
     <div class="m num">${dstr(s.datum)}${s.zeit ? " · Anwurf " + s.zeit + " Uhr" : ""}</div>
     <div class="m">${s.halle || "Halle offen"}${s.neu ? " (laut bisheriger Planung – bitte prüfen)" : ""}</div>
@@ -743,8 +750,6 @@ function waehle(s) {
   /* Kopie: eine Verlegung darf den Spielplan im Speicher nicht verändern. */
   aktiv = Object.assign({}, s);
   spielKopf();
-  $("s2").hidden = false;
-  $("s3").hidden = !(s.art === "jugend" || s.art === "erwachsen");
   baueRefs();
   rechne();
   $("s2").scrollIntoView({behavior: "smooth", block: "start"});
@@ -763,11 +768,27 @@ function schonHier(name) {
 
 function baueRefs() {
   const box = $("refs");
+  /* Schon Eingetragenes darf beim Neuaufbau nicht verloren gehen — etwa wenn
+     erst die Namen stehen und das Spiel danach gewählt wird. */
+  const vorhanden = [];
+  for (let i = 1; $("nam" + i); i++) {
+    const f = $("adr" + i);
+    vorhanden.push({
+      name: $("nam" + i).value,
+      lic: $("lic" + i) ? $("lic" + i).value : "",
+      km: $("km" + i) ? $("km" + i).value : "",
+      adr: f ? (f.hidden ? (f.dataset.wert || "") : f.value) : "",
+      folge: $("folge" + i) ? $("folge" + i).checked : false
+    });
+  }
   box.innerHTML = "";
-  if (!aktiv || (aktiv.art !== "jugend" && aktiv.art !== "erwachsen")) return;
-  const st = saetzeVon(aktiv) || {lse: 0, lsd: 0, lsc: 0};
+  const gebuehrenpflichtig = aktiv && (aktiv.art === "jugend" || aktiv.art === "erwachsen");
+  const st = gebuehrenpflichtig ? saetzeVon(aktiv) : null;
+  $("s3Hinweis").hidden = !!aktiv;
   /* aufsteigend, vorausgewaehlt bleibt wie bisher die mittlere Stufe */
-  const stufen = st.lsd === st.lsc
+  const stufen = !st
+    ? [["lse", "LSE"], ["lsd", "LSD"], ["lsc", "LSC oder höher"]]
+    : st.lsd === st.lsc
     ? [["lse", `LSE (${st.lse} €)`], ["lsd", `LSD oder höher (${st.lsd} €)`]]
     : [["lse", `LSE (${st.lse} €)`], ["lsd", `LSD (${st.lsd} €)`], ["lsc", `LSC oder höher (${st.lsc} €)`]];
   const anz = refAnzahl();
@@ -818,14 +839,25 @@ function baueRefs() {
     $("adrbox" + i).querySelector("[data-aendern]").addEventListener("click", () => adrAendern(i));
     $("km" + i).addEventListener("change", () => kmMerken($("nam" + i).value, $("km" + i).value));
     $("folge" + i).addEventListener("change", () => { $("km" + i).disabled = $("folge" + i).checked; rechne(); });
-    vorbelegen(i);
+    if (vorhanden[i - 1]) {
+      const v = vorhanden[i - 1];
+      $("nam" + i).value = v.name;
+      if (v.lic && [...$("lic" + i).options].some(o => o.value === v.lic)) $("lic" + i).value = v.lic;
+      $("km" + i).value = v.km;
+      if (v.adr) $("adr" + i).value = v.adr;
+      $("folge" + i).checked = v.folge;
+      $("km" + i).disabled = v.folge;
+    } else {
+      vorbelegen(i);
+    }
     adrAnzeigen(i);
     folgeVorschlag(i);
     kmVorschlag(i);
   }
   const on = $("oneNote");
-  const alleine = anzahl === 1;
+  const alleine = anzahl === 1 && !!aktiv;
   on.hidden = !alleine;
+  if (!aktiv) return;
   on.innerHTML = aktiv.einzelDoppelt
     ? "<strong>Nur ein Schiedsrichter:</strong> Dann ist die doppelte Gebühr zu zahlen."
     : "<strong>Nur ein Schiedsrichter:</strong> In dieser Altersklasse wird die Gebühr <em>nicht</em> verdoppelt (Ausnahme für U12 und YSO).";
@@ -965,8 +997,7 @@ document.querySelectorAll("#fortschritt button").forEach(b => {
   b.querySelector(".n").dataset.nr = b.querySelector(".n").textContent;
   b.addEventListener("click", () => {
     const ziel = $(b.dataset.ziel);
-    if (!ziel || ziel.hidden) { $("s1").scrollIntoView({behavior: "smooth", block: "start"}); return; }
-    ziel.scrollIntoView({behavior: "smooth", block: "start"});
+    if (ziel) ziel.scrollIntoView({behavior: "smooth", block: "start"});
   });
 });
 
@@ -1010,9 +1041,8 @@ function weiteresSpiel() {
   }
   aktiv = null;
   letzteBelege = [];
-  $("s2").hidden = true;
-  $("s3").hidden = true;
-  $("refs").innerHTML = "";
+  spielKopf();
+  baueRefs();
   $("q").value = "";
   zeigeTreffer();
   rechne();
@@ -1069,12 +1099,10 @@ function signaturAktivieren() {
 function quittungen() {
   const box = $("quittungen"), s4 = $("s4"), g = gruppen();
   if (!g.length) {
-    s4.hidden = true; $("s5").hidden = true; box.innerHTML = "";
+    box.innerHTML = '<p class="note">Sobald ein Spiel gewählt ist und ein Name im Feld steht, entsteht hier die Quittung.</p>';
     letzterRenderSchluessel = "";
     return;
   }
-  s4.hidden = false;
-  $("s5").hidden = false;
   if (zeichnetAktiv) { renderAusstehend = true; return; }
   const schluessel = JSON.stringify([rolle, g.map(gr => [gr.idx, abschlussIds[gr.idx] || "",
     gr.spiel.datum, gr.spiel.zeit, gr.spiel.nr, gr.spiel.liga, gr.spiel.team, gr.spiel.gegner,
@@ -1359,7 +1387,7 @@ function eingabenSperren(an) {
    zwar alles auf einmal, mit Sprungmarke zur jeweiligen Stelle. */
 function luecken() {
   const g = gruppen(), fehlt = [];
-  if (!g.length) return fehlt;
+  if (!g.length) return [{text: "Spiel auswählen", ziel: "q"}];
   const spiele = g.map(gr => gr.spiel);
   if (spiele.some(sp => sp.ligaOffen))
     fehlt.push({text: "Liga laut Spielplan — auf der Quittung steht sonst nur die Spielklasse", ziel: "fliga"});
@@ -1461,9 +1489,9 @@ function neueAbrechnung() {
   $("abschliessen").hidden = false;
   $("neueAbrechnung").hidden = true;
   $("abschlussOk").hidden = true;
-  $("s2").hidden = true;
-  $("s3").hidden = true;
   $("refs").innerHTML = "";
+  spielKopf();
+  baueRefs();
   $("q").value = "";
   zeigeTreffer();
   rechne();
@@ -1631,6 +1659,8 @@ $("vOk").addEventListener("click", () => {
 });
 
 rolleAnzeigen();
+baueRefs();
+rechne();
 fortschritt();
 $("foot").textContent = `Sätze nach ${TARIF_STAND}, Anlage 1 · Spielplan-Stand ` + ((DATEN && DATEN.stand) || "") +
   (DATEN && DATEN.korrigiert ? `, Einzelkorrekturen ${DATEN.korrigiert}` : "");
