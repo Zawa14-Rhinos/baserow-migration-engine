@@ -12,6 +12,28 @@ Bezugspunkte für alle drei:
 
 ---
 
+## Was zuerst geklärt werden muss
+
+Von den elf Punkten des ersten Auftrags bewegen **zwei** einen Betrag; die übrigen bestätigen die
+bisherige Praxis und haben keine Frist.
+
+| Offene Frage | Was der Rechner annimmt | Wirkung bei Abweichung | Erstes betroffenes Spiel |
+|---|---|---|---|
+| Oberliga Herren, Stufe LSC | LSE und LSD je 35 €, ab LSC 45 € | jeder LSD-Schiedsrichter bekäme 10 € zu wenig | 19.09.2026, danach 16 weitere |
+| Mitteldeutsche Liga | 19 € LSE / 25 € LSD+, BVSA-Sätze | Betrag und zuständige Ordnung unklar | 05.09.2026 |
+
+Beides lässt sich ohne das PDF klären — zwei Fragen an den Sportwart genügen:
+
+> 1. Oberliga Herren: Bekommt ein Schiedsrichter mit LSD-Lizenz 35 € oder 45 €? (Wir nehmen an:
+>    35 €, und 45 € erst ab LSC.)
+> 2. Mitteldeutsche Liga: Nach welcher Ordnung wird dort abgerechnet, und welche Gebühr gilt bei
+>    mU12 bzw. mU17? (Wir rechnen mit 19 € LSE / 25 € LSD+.)
+
+Ergibt die Antwort, dass die LSC-Annahme nicht stimmt, genügt es, `LSC_STUFE` im Quelltext zu
+leeren — dann gilt wieder die übliche Grenze zwischen LSE und LSD.
+
+Verfolgt wird das als [Issue #3](https://github.com/Zawa14-Rhinos/baserow-migration-engine/issues/3).
+
 ## 1 · Sätze gegen die Schiedsrichterordnung prüfen
 
 > Am besten in einer Sitzung mit Zugriff auf bvsa.de oder mit der SRO als PDF im Anhang.
