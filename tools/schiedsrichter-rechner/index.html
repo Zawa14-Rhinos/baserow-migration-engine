@@ -132,6 +132,15 @@
     padding: .8rem .9rem; font-size: .88rem; display: flex; flex-direction: column; gap: .3rem;
   }
   .abschlussok strong { color: var(--accent); }
+  .luecken {
+    border: 1px solid var(--warn); border-radius: 11px; padding: .8rem .9rem; font-size: .88rem;
+    display: flex; flex-direction: column; gap: .35rem;
+  }
+  .luecken .kopf { font-weight: 600; color: var(--warn); }
+  .luecken ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .25rem; }
+  .luecken li { color: var(--ink); }
+  .luecken button { background: none; border: 0; padding: 0; font: inherit; color: var(--accent);
+    text-decoration: underline; cursor: pointer; }
   .rollen button { font-size: .88rem; }
   .nurdruck { display: none; }
   .tagesliste { display: flex; flex-direction: column; gap: .35rem; }
@@ -172,6 +181,7 @@
   .printbtn { padding: .65rem 1rem; border-radius: 9px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
   .printbtn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
   .hint { font-size: .78rem; color: var(--good); margin-top: .3rem; }
+  .mini { font-size: .74rem; color: var(--muted); margin-top: .3rem; line-height: 1.35; }
   .hint.fehler { color: var(--warn); font-weight: 600; }
   label .pflicht { color: var(--accent); font-weight: 700; }
   input.fehlt, select.fehlt { border-color: var(--warn); }
@@ -291,10 +301,10 @@
               </select>
             </div>
             <div>
-              <label for="fliga">Liga laut Spielplan <span class="pflicht" title="Pflichtangabe">*</span></label>
+              <label for="fliga">Liga laut Spielplan <span class="pflicht" title="Wird beim Abschließen gebraucht">*</span></label>
               <input type="text" id="fliga" placeholder="z. B. Bezirksliga Halle/Harz männlich U18"
                      autocomplete="off" required aria-describedby="fligaHint">
-              <div class="hint fehler" id="fligaHint" hidden>Bitte eintragen, wie die Liga im Spielplan heißt — sie steht als Spielklasse auf der Quittung.</div>
+              <div class="hint fehler" id="fligaHint" hidden>Fehlt noch — die Liga steht als Spielklasse auf der Quittung. Du kannst sie auch später nachtragen.</div>
             </div>
           </div>
           <p class="note" id="satzInfo">Erst Spielebene wählen — Altersklasse und Mannschaft bestimmen mit, welcher Satz gilt.</p>
@@ -320,7 +330,7 @@
       <details class="frei" id="terminBox">
         <summary>Termin oder Halle stimmt nicht?</summary>
         <div class="freibody">
-          <p class="note">Der Spielplan in diesem Rechner ist eine Momentaufnahme — Verlegungen aus TeamSL kommen hier nicht von selbst an. Trag den tatsächlichen Termin ein, dann steht er auf der Quittung.</p>
+          <p class="note">Der Spielplan in diesem Rechner ist eine Momentaufnahme — Verlegungen aus TeamSL kommen hier nicht von selbst an. Trag den tatsächlichen Termin ein, dann steht er auf der Quittung. Im Zweifel nachsehen: <a class="maps" href="https://www.basketball-bund.net/" target="_blank" rel="noopener">basketball-bund.net →</a></p>
           <div class="row">
             <div><label for="vDatum">Datum</label><input type="date" id="vDatum"></div>
             <div><label for="vZeit">Anwurf</label><input type="time" id="vZeit"></div>
@@ -393,6 +403,7 @@
 
       <div class="beleg nurdruck" id="erstattungDruck"></div>
 
+      <div class="luecken" id="luecken" hidden></div>
       <div class="abschlussok" id="abschlussOk" hidden></div>
       <div class="actions">
         <button type="button" id="abschliessen" class="printbtn">Abrechnung abschließen</button>
@@ -431,7 +442,7 @@
   <details class="help" id="listeBox">
     <summary>Schiedsrichter-Liste auf diesem Gerät (<span id="listeAnzahl">0</span>)</summary>
     <div class="body">
-      <p class="note">Einmal eintragen, dann genügt der Anfang des Namens — Lizenzstufe und Anschrift füllen sich von selbst. Du kannst die <strong>Trefferliste aus TeamSL direkt hierher kopieren</strong>: Zeilen mit Tabulatoren, Semikolon oder mehreren Leerzeichen werden erkannt, E-Mail-Adressen und Telefonnummern dabei verworfen. Von Hand geht es genauso: <span class="num">Mustermann, Max; LSD; Musterweg 3, 06110 Halle</span>. Unter dem Feld siehst du, was gelesen wurde. Die Lizenzstufe steht in der Fortbildungsliste, die Anschrift in TeamSL unter „Schiedsrichter-Adressen“.</p>
+      <p class="note">Einmal eintragen, dann genügt der Anfang des Namens — Lizenzstufe und Anschrift füllen sich von selbst. Du kannst die <strong>Trefferliste aus TeamSL direkt hierher kopieren</strong>: Zeilen mit Tabulatoren, Semikolon oder mehreren Leerzeichen werden erkannt, E-Mail-Adressen und Telefonnummern dabei verworfen. Von Hand geht es genauso: <span class="num">Mustermann, Max; LSD; Musterweg 3, 06110 Halle</span>. Unter dem Feld siehst du, was gelesen wurde. Die Lizenzstufe steht in der Fortbildungsliste, die Anschrift in TeamSL unter „Schiedsrichter-Adressen“ auf <a class="maps" href="https://www.basketball-bund.net/" target="_blank" rel="noopener">basketball-bund.net →</a></p>
       <textarea id="listeText" rows="5" placeholder="Mustermann, Max; LSD; Musterweg 3, 06110 Halle&#10;Beispiel, Erika; LSE; Beispielstr. 7, 06849 Dessau"></textarea>
       <div class="vorschau" id="listeVorschau" hidden></div>
       <div class="actions">
@@ -451,10 +462,10 @@
         <li>Kommt ein Schiedsrichter <strong>nicht 20 Minuten vor Anwurf in Schiedsrichterkleidung</strong> in die Halle, darfst du die Gebühr um 50 % kürzen.</li>
         <li>Jeder Schiedsrichter wird <strong>nach seiner eigenen Lizenz</strong> bezahlt — auch wenn die beiden unterschiedliche Stufen haben.</li>
         <li><strong>Fahrtkosten nur einmal:</strong> Wer direkt davor schon in derselben Halle gepfiffen hat, bekommt für das zweite Spiel keine Fahrtkosten mehr.</li>
-        <li><strong>Anschrift nachschlagen:</strong> in TeamSL unter „Schiedsrichter-Adressen“ (Login nötig, Suche über Vor- <em>und</em> Nachname oder die Lizenznummer).</li>
+        <li><strong>Anschrift nachschlagen:</strong> auf <a class="maps" href="https://www.basketball-bund.net/" target="_blank" rel="noopener">basketball-bund.net</a> in TeamSL unter „Schiedsrichter-Adressen“ (Login nötig, Suche über Vor- <em>und</em> Nachname oder die Lizenznummer).</li>
         <li><strong>Die vollständige Anschrift gehört auf die Quittung</strong> — so verlangt es die Geschäftsstelle. Sie bleibt dabei auf deinem Gerät gespeichert und steht beim nächsten Mal sofort da. Kommt jemand von woanders, „andere Adresse“ tippen.</li>
         <li><strong>Tagegeld</strong> gibt es erst ab 8 Stunden Abwesenheit — bei einem normalen Heimspiel also nicht.</li>
-        <li>Kilometer gelten laut Google Maps, Route <strong>Wohnort → Halle → Wohnort</strong>, kürzeste Strecke. Der Rechner öffnet sie dir vorbereitet.</li>
+        <li><strong>Kilometer immer hin und zurück:</strong> die Gesamtstrecke Wohnort → Halle → Wohnort, kürzeste Route laut Google Maps. Der Rechner öffnet sie dir vorbereitet — was dort als Entfernung steht, kommt genau so ins Feld.</li>
       </ul>
     </div>
   </details>
@@ -775,8 +786,9 @@ function baueRefs() {
           <select id="lic${i}">${stufen.map(([w, t]) => `<option value="${w}"${w === "lsd" ? " selected" : ""}>${t}</option>`).join("")}</select>
         </div>
         <div>
-          <label for="km${i}">Kilometer laut Maps</label>
+          <label for="km${i}">Kilometer hin und zurück</label>
           <input type="number" id="km${i}" min="0" step="1" inputmode="numeric" placeholder="0">
+          <div class="mini">Gesamtstrecke Wohnort → Halle → Wohnort, kürzeste Route</div>
           <div class="hint" id="hint${i}"></div>
         </div>
       </div>
@@ -789,7 +801,7 @@ function baueRefs() {
         <input type="text" id="adr${i}" placeholder="Straße, PLZ Ort" autocomplete="off">
         <label class="check" id="merkbox${i}" style="margin-top:.45rem"><input type="checkbox" id="merk${i}" checked>
           <span>Anschrift auf diesem Gerät merken — beim nächsten Mal steht sie sofort da</span></label>
-        <div style="margin-top:.45rem"><a class="maps" id="map${i}" href="#" target="_blank" rel="noopener" aria-disabled="true">Route in Google Maps öffnen →</a></div>
+        <div style="margin-top:.45rem"><a class="maps" id="map${i}" href="#" target="_blank" rel="noopener" aria-disabled="true">Hin- und Rückweg in Google Maps öffnen →</a></div>
       </div>
       <label class="check"><input type="checkbox" id="folge${i}">
         <span>Hat direkt davor schon in dieser Halle gepfiffen — keine Fahrtkosten mehr</span></label>`;
@@ -892,6 +904,7 @@ function rechne() {
   quittungen();
   tagesliste();
   fortschritt();
+  lueckenAnzeigen();
   erstattungRendern();
   mailLink();
   if (abgeschlossen) eingabenSperren(true);
@@ -1039,6 +1052,7 @@ function signaturAktivieren() {
       zeichnet = false;
       unterschriften[k] = cv.toDataURL();
       fortschritt();
+      lueckenAnzeigen();
       if (renderAusstehend) { renderAusstehend = false; quittungen(); }
     };
     cv.addEventListener("pointerup", ende); cv.addEventListener("pointerleave", ende);
@@ -1048,6 +1062,7 @@ function signaturAktivieren() {
     cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
     delete unterschriften[b.dataset.sig];
     fortschritt();
+    lueckenAnzeigen();
   }));
 }
 
@@ -1081,7 +1096,7 @@ function quittungen() {
         <dt>Lizenzstufe</dt><dd>${p.stufe}</dd>
         <dt>Spielleitungsgebühr</dt><dd class="num">${eurCt(p.gebuehr_ct)}${p.verdoppelt ? " (doppelt, nur ein SR)" : ""}</dd>
         <dt>Anschrift</dt><dd>${p.adresse || '<span class="fehltmarke">bitte eintragen</span>'}</dd>
-        <dt>Fahrtkosten</dt><dd class="num">${p.km ? p.km + " km × " + KM_SATZ_TEXT + " = " + eurCt(p.fahrt_ct) : (p.folge ? "entfällt (Folgespiel in derselben Halle)" : eurCt(0))}</dd>
+        <dt>Fahrtkosten</dt><dd class="num">${p.km ? p.km + " km hin und zurück × " + KM_SATZ_TEXT + " = " + eurCt(p.fahrt_ct) : (p.folge ? "entfällt (Folgespiel in derselben Halle)" : eurCt(0))}</dd>
       </dl>
       <div class="gesamt"><span>Ausgezahlt</span><span class="num">${eurCt(p.gebuehr_ct + p.fahrt_ct)}</span></div>
       <div class="sigpad">
@@ -1119,7 +1134,7 @@ function belegText() {
     const sp = gr.spiel;
     const kopf = `${sp.team ? sp.team + " – " : ""}${sp.gegner}\n${dstr(sp.datum)}${sp.zeit ? ", " + sp.zeit + " Uhr" : ""}\n${sp.liga}${sp.nr ? " · Spiel " + sp.nr : ""}\n${sp.halle || ""}`;
     const zeilen = gr.posten.map(p =>
-      `\n${p.name || "Schiedsrichter " + p.i} (${p.stufe})${p.adresse ? "\n  Anschrift: " + p.adresse : ""}\n  Spielleitungsgebühr: ${eurCt(p.gebuehr_ct)}${p.verdoppelt ? " (doppelt, nur ein SR)" : ""}\n  Fahrtkosten: ${p.km ? p.km + " km × " + KM_SATZ_TEXT + " = " + eurCt(p.fahrt_ct) : (p.folge ? "entfällt (Folgespiel, gleiche Halle)" : eurCt(0))}\n  Ausgezahlt: ${eurCt(p.gebuehr_ct + p.fahrt_ct)}`).join("");
+      `\n${p.name || "Schiedsrichter " + p.i} (${p.stufe})${p.adresse ? "\n  Anschrift: " + p.adresse : ""}\n  Spielleitungsgebühr: ${eurCt(p.gebuehr_ct)}${p.verdoppelt ? " (doppelt, nur ein SR)" : ""}\n  Fahrtkosten: ${p.km ? p.km + " km hin und zurück × " + KM_SATZ_TEXT + " = " + eurCt(p.fahrt_ct) : (p.folge ? "entfällt (Folgespiel, gleiche Halle)" : eurCt(0))}\n  Ausgezahlt: ${eurCt(p.gebuehr_ct + p.fahrt_ct)}`).join("");
     return kopf + zeilen;
   });
   const summe = g.reduce((a, gr) => a + summeVon(gr.posten), 0);
@@ -1201,18 +1216,16 @@ $("fliga").addEventListener("input", () => {
 $("freiOk").addEventListener("click", () => {
   const t = tarifFrei();
   if (!t) { $("ebene").focus(); return; }
-  /* Die Liga steht als Spielklasse auf der Quittung. Ohne sie waere der Beleg
-     nicht zuzuordnen — deshalb Pflicht, anders als Paarung, Nummer und Halle. */
+  /* Die Liga steht als Spielklasse auf der Quittung und wird beim Abschließen
+     eingefordert — die Erfassung hält sie nicht auf. Fehlt sie, merkt sich der
+     Rechner, dass die Bezeichnung nur automatisch gebildet wurde. */
   const liga = $("fliga").value.trim();
-  if (!liga) {
-    $("fligaHint").hidden = false;
-    $("fliga").classList.add("fehlt");
-    $("fliga").focus();
-    return;
-  }
+  $("fligaHint").hidden = !!liga;
+  $("fliga").classList.toggle("fehlt", !liga);
   waehle({
     nr: $("fnr").value.trim(), datum: $("fdatum").value || new Date().toISOString().slice(0, 10),
-    zeit: "", team: "", gegner: $("fpaar").value.trim() || t.label, liga,
+    zeit: "", team: "", gegner: $("fpaar").value.trim() || t.label,
+    liga: liga || t.label, ligaOffen: !liga,
     halle: $("fhalle").value.trim(), adresse: $("fhalle").value.trim(),
     lse: t.saetze ? t.saetze.lse : null, lsd: t.saetze ? t.saetze.lsd : null,
     saetze: t.saetze || null, art: t.art, einzelDoppelt: !!t.einzelDoppelt
@@ -1342,6 +1355,43 @@ function eingabenSperren(an) {
   });
 }
 
+/* Während der Erfassung hält nichts auf — geprüft wird beim Abschließen, und
+   zwar alles auf einmal, mit Sprungmarke zur jeweiligen Stelle. */
+function luecken() {
+  const g = gruppen(), fehlt = [];
+  if (!g.length) return fehlt;
+  const spiele = g.map(gr => gr.spiel);
+  if (spiele.some(sp => sp.ligaOffen))
+    fehlt.push({text: "Liga laut Spielplan — auf der Quittung steht sonst nur die Spielklasse", ziel: "fliga"});
+  g.forEach(gr => {
+    const wer = gr.posten.length > 1 ? "" : " ";
+    gr.posten.forEach(x => {
+      if (!x.name) fehlt.push({text: "Name des Schiedsrichters" + wer, ziel: "nam" + x.i});
+      else if (!x.adresse) fehlt.push({text: `Anschrift von ${x.name} — die Geschäftsstelle braucht sie auf der Quittung`, ziel: "adr" + x.i});
+    });
+    if (!gr.posten.some(x => unterschriften[gr.idx + "_" + x.i]))
+      fehlt.push({text: "Unterschrift auf der Quittung" + (g.length > 1 ? ` (Spiel ${gr.idx + 1})` : ""), ziel: "sig" + gr.idx + "_" + gr.posten[0].i});
+  });
+  if ($("zahlart").value === "bar_ausgelegt" && !$("iban").value.trim())
+    fehlt.push({text: "IBAN für die Rückerstattung — sonst weiß der Verein nicht, wohin", ziel: "iban"});
+  return fehlt;
+}
+
+function lueckenAnzeigen() {
+  const box = $("luecken"), fehlt = abgeschlossen ? [] : luecken();
+  if (!fehlt.length) { box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  box.innerHTML = `<div class="kopf">Zum Abschließen fehlt noch:</div><ul>` +
+    fehlt.map((f, i) => `<li><button type="button" data-luecke="${i}">${f.text}</button></li>`).join("") +
+    `</ul>`;
+  box.querySelectorAll("[data-luecke]").forEach(b => b.addEventListener("click", () => {
+    const ziel = $(fehlt[b.dataset.luecke].ziel);
+    if (!ziel) return;
+    ziel.scrollIntoView({behavior: "smooth", block: "center"});
+    if (ziel.focus && ziel.tagName !== "CANVAS") setTimeout(() => ziel.focus(), 400);
+  }));
+}
+
 function abschliessen() {
   const g = gruppen();
   if (!g.length) return;
@@ -1350,9 +1400,13 @@ function abschliessen() {
       `Für ${doppelt.length === 1 ? "dieses Spiel gibt es schon eine Abrechnung" : "diese Spiele gibt es schon Abrechnungen"}: ` +
       doppelt.map(v => v.id).join(", ") + ". Trotzdem noch einmal abschließen?")) return;
 
-  const ohneAnschrift = g.some(gr => gr.posten.some(x => !x.adresse));
-  if (ohneAnschrift && !confirm(
-      "Bei mindestens einem Schiedsrichter fehlt die Anschrift. Die Geschäftsstelle braucht sie auf der Quittung. Trotzdem abschließen?")) return;
+  const fehlt = luecken();
+  if (fehlt.length) {
+    lueckenAnzeigen();
+    $("luecken").scrollIntoView({behavior: "smooth", block: "center"});
+    if (!confirm("Es fehlt noch:\n\n• " + fehlt.map(f => f.text.split(" — ")[0]).join("\n• ") +
+                 "\n\nTrotzdem abschließen?")) return;
+  }
 
   const liste = vorgaengeLesen();
   const jetzt = new Date().toISOString();
@@ -1377,6 +1431,7 @@ function abschliessen() {
   });
   vorgaengeSchreiben(liste);
   abgeschlossen = true;
+  lueckenAnzeigen();
   vorgaengeAnzeigen();
   rechne();                       // Quittungen neu rendern, jetzt mit Nummer
   const ids = Object.keys(abschlussIds).sort((a, b) => a - b).map(k => abschlussIds[k]);
@@ -1518,6 +1573,7 @@ $("iban").addEventListener("input", () => {
   rechne();
 });
 $("ibanName").addEventListener("input", () => { kontoMerken(); rechne(); });
+$("zahlart").addEventListener("change", lueckenAnzeigen);
 $("ibanMerk").addEventListener("change", () => {
   if (!$("ibanMerk").checked) { try { localStorage.removeItem(KONTO_SPEICHER); } catch (e) {} }
   else kontoMerken();
