@@ -136,13 +136,20 @@ herausgibt, muss die Abrechnung trotzdem entstehen können.
 ## Aufbau der Seite
 
 Die Seite ist **eine durchgehende Liste**, keine Abfolge von Fenstern: Schritt 1 Spiel finden,
-2 Spiel, 3 Schiedsrichter, 4 Quittung, 5 Abschließen. Alles bleibt gleichzeitig sichtbar und
-änderbar — wer nach dem Unterschreiben merkt, dass die Kilometer nicht stimmen, scrollt hoch und
-korrigiert, ohne einen Ablauf rückwärts zu durchlaufen.
+2 Spiel, 3 Schiedsrichter, 4 Quittung, 5 Abschließen. Alle fünf Abschnitte stehen **von Anfang an
+da** — auch ohne gewähltes Spiel. Wo noch nichts entstehen kann, steht ein Platzhalter statt einer
+Lücke, und die Eingabefelder sind trotzdem benutzbar: Namen, Anschrift und Kilometer lassen sich
+schon eintragen, bevor das Spiel feststeht. Die Lizenzstufen zeigen dann noch keine Beträge; sobald
+das Spiel gewählt ist, erscheinen sie, und die bereits eingetragenen Werte bleiben stehen.
+
+Alles bleibt gleichzeitig sichtbar und änderbar — wer nach dem Unterschreiben merkt, dass die
+Kilometer nicht stimmen, scrollt hoch und korrigiert, ohne einen Ablauf rückwärts zu durchlaufen.
 
 Damit der Stand trotzdem auf einen Blick erkennbar ist, steht unter der Kopfzeile eine
 **Fortschrittsleiste** mit vier Punkten: Spiel · Namen · Quittung · Abschluss. Sie zeigt an, was
-erledigt ist (Haken), woran gerade gearbeitet wird, und dient als Sprungmarke. Der Stand wird nicht
+erledigt ist (Haken), woran gerade gearbeitet wird, und dient als Sprungmarke — **jeder Punkt ist
+jederzeit anspringbar**, unabhängig davon, was schon ausgefüllt ist. Die Leiste führt niemanden,
+sie zeigt nur an. Der Stand wird nicht
 weitergeklickt, sondern aus dem tatsächlichen Inhalt abgeleitet — ein Spiel ist gewählt, alle Namen
 stehen, es wurde unterschrieben, die Abrechnung ist festgeschrieben.
 
@@ -337,6 +344,7 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 | Datum | Änderung |
 |---|---|
 | 17.08.2026 | Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail |
+| 23.08.2026 | Alle Abschnitte von Anfang an sichtbar und anspringbar; Namen, Anschrift und Kilometer schon vor der Spielauswahl eintragbar, Eingaben überstehen die Auswahl |
 | 23.08.2026 | Prüfung auf Vollständigkeit erst beim Abschließen, mit laufender Lückenliste und Sprungmarken; Kilometer überall als Hin- und Rückweg benannt; Verweise auf basketball-bund.net ergänzt |
 | 23.08.2026 | Erstattungsangaben unter Schritt 5 verschoben; Fortschrittsleiste ergänzt; Quittungen werden während des Unterschreibens nicht mehr neu gezeichnet; Summenbalken tritt beim Unterschreiben zurück |
 | 23.08.2026 | Schiedsrichter-Liste nimmt aus TeamSL kopierte Trefferlisten an, mit Vorschau; Kontaktdaten und Lizenznummern werden verworfen, bekannte Namen aktualisiert |
