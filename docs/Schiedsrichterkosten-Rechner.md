@@ -228,7 +228,7 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 
 ## Offene Punkte
 
-**Fachlich zu bestätigen** (vor dem ersten Saisoneinsatz mit dem Sportwart klären):
+**Fachlich zu bestätigen** — verfolgt als [Issue #3](https://github.com/Zawa14-Rhinos/baserow-migration-engine/issues/3), vor dem ersten Saisoneinsatz mit dem Sportwart klären:
 
 1. **Oberliga Herren, Stufe LSC.** Der Rechner nimmt an: LSE und LSD 35 €, ab LSC 45 €. Die Annahme
    stammt aus der Beschriftung der bisherigen Spielklassenliste, nicht aus einem Abgleich mit der
@@ -241,7 +241,9 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 
 4. **Sammelstelle und Rückerstattung.** Ziel ist: nach dem Spiel abschicken, kurzfristig eine
    Bestätigung erhalten, Rückerstattung gesammelt einmal im Monat. Heute endet der Rechner bei einer
-   Mail mit PDF-Anhang; Eingangsbestätigung und Auszahlungslauf sind organisatorisch offen.
+   Mail mit PDF-Anhang; Eingangsbestätigung und Auszahlungslauf sind organisatorisch offen. Sechs
+   Wege sind verglichen und liegen dem Vorstand als Entscheidungsvorlage vor —
+   [Issue #4](https://github.com/Zawa14-Rhinos/baserow-migration-engine/issues/4).
 
 **Weiterentwicklung:**
 
@@ -258,6 +260,7 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 | Datum | Änderung |
 |---|---|
 | 17.08.2026 | Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail |
+| 23.08.2026 | Offene Punkte als Issues #3 und #4 festgehalten |
 | 23.08.2026 | Vollständige Anschrift des Schiedsrichters auf der Quittung statt nur der Postleitzahl; Verlegungen im Rechner eintragbar; MDL-Spiel mU12 gegen ChemCats Chemnitz vom 27.09. auf den 03.10.2026 korrigiert |
 | 23.08.2026 | Liga laut Spielplan bei manueller Spieleingabe verpflichtend |
 | 23.08.2026 | Version 1.1: Abrechnungsvorgänge mit eigener Nummer, Zahlungsart, Festschreiben der Beträge, Liste der eigenen Abrechnungen auf dem Gerät, Doppelschutz, Abrechnungsnummer und Tarifstand auf der Quittung, Beträge intern in Cent, Warnung vor dem Verlassen mit ungedruckter Unterschrift |
