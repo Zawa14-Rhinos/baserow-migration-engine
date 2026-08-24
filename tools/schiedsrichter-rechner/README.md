@@ -8,6 +8,7 @@ bedient, in der [Kurzanleitung](../../docs/Kurzanleitung%20Schiedsrichterkosten-
 tools/schiedsrichter-rechner/
   index.html        aktueller Stand — Programm, Spielplan und Sätze in einer Datei
   archiv/           frühere Fassungen, jede für sich lauffähig
+  tests/            Browser-Tests (Playwright), `node alle.mjs`
   README.md         diese Datei
 ```
 
@@ -85,8 +86,16 @@ gehören durchgespielt:
 - Verhalten ohne `localStorage`,
 - Ansicht auf 375 px Breite.
 
-Für die automatisierte Prüfung eignet sich Playwright gegen `file://` — die Testfälle der
-bisherigen Runden sind in den Pull Requests beschrieben.
+Automatisiert geht das mit den Suiten in [`tests/`](tests/README.md): Playwright öffnet die Datei
+über `file://`, klickt sich durch und prüft das Ergebnis.
+
+```
+cd tools/schiedsrichter-rechner/tests
+NODE_PATH=$(npm root -g) node alle.mjs
+```
+
+Derzeit acht Suiten mit 131 Prüfungen. Wer eine Funktion ergänzt, ergänzt dort die Fälle — mehrere
+der heute gefundenen Fehler sind erst durch diese Tests aufgefallen.
 
 ## Spielplan aktualisieren
 
