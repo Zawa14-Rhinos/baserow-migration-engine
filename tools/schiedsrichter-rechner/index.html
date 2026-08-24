@@ -90,6 +90,15 @@
   .chip.weg { border-color: var(--good); color: var(--good); }
   .idzeile { font-size: .76rem; color: var(--muted); margin: -.3rem 0 .6rem; }
   .fehltmarke { color: var(--warn); font-weight: 600; }
+  .vorschau { display: flex; flex-direction: column; gap: .3rem; font-size: .82rem; }
+  .vorschau .kopf { font-size: .76rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+  .vorschau .z { display: flex; flex-wrap: wrap; gap: .2rem .6rem; padding: .4rem .6rem;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); }
+  .vorschau .z b { font-weight: 600; }
+  .vorschau .z .lz { color: var(--accent); font-weight: 600; }
+  .vorschau .z .ad { color: var(--muted); flex-basis: 100%; }
+  .vorschau .z.unklar { border-color: var(--warn); }
+  .vorschau .z.unklar .ad { color: var(--warn); }
   .idzeile .num { color: var(--ink); }
   .vorgang { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .6rem;
     padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); font-size: .86rem; }
@@ -387,8 +396,9 @@
   <details class="help" id="listeBox">
     <summary>Schiedsrichter-Liste auf diesem Gerät (<span id="listeAnzahl">0</span>)</summary>
     <div class="body">
-      <p class="note">Einmal eintragen, dann genügt der Anfang des Namens — Lizenzstufe und Anschrift füllen sich von selbst. Eine Zeile je Person: <strong>Name; Lizenz; Anschrift</strong>, zum Beispiel <span class="num">Mustermann, Max; LSD; Musterweg 3, 06110 Halle</span>. Die Lizenzstufe steht in der Fortbildungsliste, die Anschrift in TeamSL unter „Schiedsrichter-Adressen“.</p>
+      <p class="note">Einmal eintragen, dann genügt der Anfang des Namens — Lizenzstufe und Anschrift füllen sich von selbst. Du kannst die <strong>Trefferliste aus TeamSL direkt hierher kopieren</strong>: Zeilen mit Tabulatoren, Semikolon oder mehreren Leerzeichen werden erkannt, E-Mail-Adressen und Telefonnummern dabei verworfen. Von Hand geht es genauso: <span class="num">Mustermann, Max; LSD; Musterweg 3, 06110 Halle</span>. Unter dem Feld siehst du, was gelesen wurde. Die Lizenzstufe steht in der Fortbildungsliste, die Anschrift in TeamSL unter „Schiedsrichter-Adressen“.</p>
       <textarea id="listeText" rows="5" placeholder="Mustermann, Max; LSD; Musterweg 3, 06110 Halle&#10;Beispiel, Erika; LSE; Beispielstr. 7, 06849 Dessau"></textarea>
+      <div class="vorschau" id="listeVorschau" hidden></div>
       <div class="actions">
         <button type="button" id="listeSpeichern" class="printbtn">Liste übernehmen</button>
         <button type="button" id="listeLoeschen" class="printbtn ghost">Liste löschen</button>
@@ -514,15 +524,60 @@ const LISTE_SPEICHER = "usv-sr-liste";
 function listeLesen() { try { return JSON.parse(localStorage.getItem(LISTE_SPEICHER) || "[]"); } catch (e) { return []; } }
 function listeSchreiben(l) { try { localStorage.setItem(LISTE_SPEICHER, JSON.stringify(l)); } catch (e) {} }
 
+/* Erkennt eine von Hand getippte Zeile (Name; Lizenz; Anschrift) genauso wie
+   eine aus TeamSL kopierte Trefferliste, in der die Spalten mit Tabulatoren
+   oder mehreren Leerzeichen getrennt sind. Kontaktdaten werden dabei
+   ausdrücklich verworfen — sie gehören nicht in diese Liste. */
+const RE_MAIL = /[^\s,;]+@[^\s,;]+\.[a-z]{2,}/i;
+const RE_TEL = /(?:\+49|\(?0)[\d\s\/().-]{6,}\d/;
+const RE_LIZENZ = /^(?:lizenzstufe\s*)?(LSE|LSD|LSC|LSB|LSA)\b|^([A-E])[\s-]*lizenz$|^([A-E])$/i;
+const RE_PLZ = /\b\d{5}\b/;
+const RE_HAUSNR = /\D\s\d+\s*[a-z]?$/i;
+/* Beim Kopieren einer Tabelle kommt die Kopfzeile mit. Zwei solcher Wörter in
+   einer Zeile genügen, um sie als Überschrift zu erkennen. */
+const RE_KOPF = /^(nachname|vorname|name|lizenz|lizenzstufe|lizenznummer|stufe|straße|strasse|adresse|anschrift|plz|ort|wohnort|verein|e-?mail|mail|telefon|tel\.?|handy|nr\.?|#)$/i;
+
+function stufeAus(feld) {
+  const m = RE_LIZENZ.exec(feld.trim());
+  if (!m) return "";
+  const roh = (m[1] || m[2] || m[3] || "").toUpperCase();
+  /* TeamSL führt die Stufen als Buchstaben, der Rechner als LS-Kürzel. */
+  return roh.length === 1 ? ({E: "LSE", D: "LSD", C: "LSC", B: "LSB", A: "LSA"})[roh] || "" : roh;
+}
+
+function zeileParsen(zeile) {
+  let z = (zeile || "").trim();
+  if (!z) return null;
+  const kontakt = RE_MAIL.test(z) || RE_TEL.test(z);
+  z = z.replace(new RegExp(RE_MAIL.source, "gi"), " ").replace(new RegExp(RE_TEL.source, "g"), " ");
+  const teile = z.split(/\t|;|\s{2,}|\|/).map(x => x.replace(/\s+/g, " ").trim()).filter(Boolean);
+  if (!teile.length) return null;
+  if (teile.filter(t => RE_KOPF.test(t)).length >= 2) return {kopf: true};
+
+  let stufe = "";
+  const rest = [];
+  teile.forEach(t => {
+    const st = stufeAus(t);
+    if (st && !stufe) { stufe = st; return; }
+    if (/^\d+$/.test(t) && !RE_PLZ.test(t)) return;      // Lizenznummer o. Ä. — nicht übernehmen
+    rest.push(t);
+  });
+
+  const adrTeile = rest.filter(t => RE_PLZ.test(t) || RE_HAUSNR.test(t));
+  const namTeile = rest.filter(t => adrTeile.indexOf(t) < 0 && !/\d/.test(t));
+  const adresse = adrTeile.join(", ");
+  /* Steht der Ort in einer eigenen Spalte hinter der Postleitzahl, hängt er
+     bereits an der Adresse; übrig bleiben Nach- und Vorname. */
+  const name = namTeile.slice(0, 2).join(namTeile.length > 1 && namTeile[0].indexOf(",") < 0 ? ", " : " ").trim();
+  /* Ohne zusammenhängende Buchstaben ist es kein Name, sondern eine Kopfzeile
+     oder Zahlenspalte — solche Zeilen werden gemeldet statt still übernommen. */
+  if (!name || !/\p{L}{2,}/u.test(name)) return {fehler: true, quelle: zeile.trim(), kontakt};
+  return {name, stufe, adresse, kontakt};
+}
+
 function listeParsen(text) {
-  return text.split("\n").map(z => z.trim()).filter(Boolean).map(z => {
-    const teile = z.split(/[;\t]/).map(x => (x || "").trim()).filter(Boolean);
-    const stufe = (teile.find(x => /^(LSE|LSD|LSC)$/i.test(x)) || "").toUpperCase();
-    /* Alles, was eine Hausnummer oder Postleitzahl enthaelt, ist die Anschrift. */
-    const adresse = (teile.find(x => x !== stufe && /\d/.test(x)) || "");
-    const name = teile.find(x => x !== stufe && x !== adresse) || "";
-    return name ? {name, stufe, adresse} : null;
-  }).filter(Boolean);
+  return (text || "").split("\n").map(zeileParsen).filter(x => x && !x.fehler && !x.kopf)
+    .map(({name, stufe, adresse}) => ({name, stufe, adresse}));
 }
 
 function listeAnzeigen() {
@@ -1066,10 +1121,41 @@ $("freiOk").addEventListener("click", () => {
   });
 });
 
+/* Zeigt vor dem Übernehmen, was aus dem eingefügten Text gelesen wurde —
+   fremde Formate fallen so sofort auf, statt still falsch zu landen. */
+function listeVorschau() {
+  const box = $("listeVorschau"), zeilen = ($("listeText").value || "").split("\n").map(zeileParsen).filter(Boolean);
+  if (!zeilen.length) { box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  const koepfe = zeilen.filter(z => z.kopf).length;
+  const daten = zeilen.filter(z => !z.kopf);
+  const gut = daten.filter(z => !z.fehler);
+  const kontakt = zeilen.some(z => z.kontakt);
+  box.innerHTML =
+    `<div class="kopf">${gut.length} von ${daten.length} ${daten.length === 1 ? "Zeile" : "Zeilen"} erkannt` +
+    (koepfe ? ` · ${koepfe === 1 ? "Überschrift übersprungen" : koepfe + " Überschriften übersprungen"}` : "") +
+    (kontakt ? " · E-Mail und Telefon wurden verworfen" : "") + "</div>" +
+    daten.map(z => z.fehler
+      ? `<div class="z unklar"><b>nicht erkannt</b><span class="ad">${z.quelle}</span></div>`
+      : `<div class="z"><b>${z.name}</b>${z.stufe ? `<span class="lz">${z.stufe}</span>` : ""}` +
+        `<span class="ad">${z.adresse || "keine Anschrift erkannt"}</span></div>`).join("");
+}
+
+$("listeText").addEventListener("input", listeVorschau);
+
 $("listeSpeichern").addEventListener("click", () => {
   const l = listeParsen($("listeText").value);
-  listeSchreiben(l); listeAnzeigen();
+  if (!l.length) { listeVorschau(); return; }
+  /* Bereits bekannte Namen werden aktualisiert statt verdoppelt. */
+  const alt = listeLesen();
+  l.forEach(neu => {
+    const i = alt.findIndex(x => x.name.toLowerCase() === neu.name.toLowerCase());
+    if (i >= 0) alt[i] = Object.assign({}, alt[i], neu); else alt.push(neu);
+    if (neu.adresse) adrMerken(neu.name, neu.adresse);
+  });
+  listeSchreiben(alt); listeAnzeigen();
   $("listeText").value = "";
+  listeVorschau();
   for (let i = 1; i <= anzahl; i++) if ($("nam" + i)) { ausListe(i); adrAnzeigen(i); }
   rechne();
 });
