@@ -82,6 +82,27 @@
   .segmented button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 
   .rollen { margin-top: .7rem; }
+  /* Zeigt den Stand des Ablaufs, ohne Schritte zu verstecken: die Seite bleibt
+     eine durchgehende Liste, die Leiste ist Anzeige und Sprungmarke zugleich. */
+  .fortschritt { display: flex; gap: .3rem; }
+  .fortschritt button {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: .35rem;
+    padding: .45rem .25rem; border: 1px solid var(--line); border-radius: 9px;
+    background: var(--surface); color: var(--muted); font-size: .76rem; cursor: pointer;
+    min-width: 0; white-space: nowrap;
+  }
+  .fortschritt .n {
+    font-family: ui-monospace, monospace; font-size: .72rem; font-weight: 700;
+    width: 1.15rem; height: 1.15rem; border-radius: 50%; flex: none;
+    display: grid; place-items: center; background: var(--surface-2); color: var(--muted);
+  }
+  .fortschritt .lbl { overflow: hidden; text-overflow: ellipsis; }
+  .fortschritt button[data-stand="offen"] { opacity: .55; }
+  .fortschritt button[data-stand="aktuell"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .fortschritt button[data-stand="aktuell"] .n { background: var(--accent-soft); color: var(--accent); }
+  .fortschritt button[data-stand="fertig"] { border-color: var(--good); color: var(--good); }
+  .fortschritt button[data-stand="fertig"] .n { background: transparent; color: var(--good); }
+  @media (max-width: 23rem) { .fortschritt .lbl { display: none; } }
   .chip {
     font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 600;
     padding: .12rem .45rem; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
@@ -133,6 +154,10 @@
   .total .sum { font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; }
   .total .split { font-size: .8rem; color: var(--muted); text-align: right; }
   .total.zero .sum { color: var(--good); font-size: 1.1rem; font-weight: 600; }
+  /* Beim Unterschreiben ist der Balken im Weg, wenn das Feld am unteren Rand
+     steht — solange gezeichnet wird, tritt er zurück. */
+  .total.beiseite { opacity: 0; pointer-events: none; }
+  @media (prefers-reduced-motion: no-preference) { .total { transition: opacity .15s ease; } }
 
   .note { font-size: .84rem; color: var(--muted); line-height: 1.5; }
   .note strong { color: var(--ink); font-weight: 600; }
@@ -155,7 +180,7 @@
   details.frei { border-top: 1px solid var(--line); padding-top: .7rem; }
   details.frei summary { cursor: pointer; font-size: .85rem; color: var(--accent); }
   details.frei .freibody { display: flex; flex-direction: column; gap: .7rem; padding-top: .7rem; }
-  .beleg { border: 1px solid var(--line); border-radius: 11px; padding: .85rem; background: var(--surface-2); font-size: .87rem; }
+  .beleg { scroll-margin-bottom: 8rem; border: 1px solid var(--line); border-radius: 11px; padding: .85rem; background: var(--surface-2); font-size: .87rem; }
   .beleg h4 { margin: 0 0 .5rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
   .beleg dl { display: grid; grid-template-columns: auto 1fr; gap: .25rem .8rem; margin: 0; }
   .beleg dt { color: var(--muted); }
@@ -168,9 +193,11 @@
   @media (prefers-reduced-motion: no-preference) { .step, .ref { transition: border-color .15s ease; } }
   @media print {
     body { background: #fff; color: #000; padding: 0; }
-    .wrap > header, #s1, .step:not(#s4), details.help, .total, .actions, .note, footer { display: none !important; }
-    #s4 { border: 0; box-shadow: none; }
+    .wrap > header, #s1, .step:not(#s4):not(#s5), details.help, .total, .actions, .note, footer,
+    #s5 > .head, .nurbildschirm, .fortschritt { display: none !important; }
+    #s4, #s5 { border: 0; box-shadow: none; }
     #s4 > .head { display: none; }
+    #s5 .body { padding: 0; }
     .beleg { background: #fff; border: 1px solid #999; page-break-inside: avoid; margin-bottom: .6rem; }
     .beleg dt, .sigrow { color: #444; }
     .sigpad canvas { border: 1px solid #999; background: #fff; }
@@ -192,7 +219,14 @@
     </div>
   </header>
 
-  <section class="step">
+  <nav class="fortschritt" id="fortschritt" aria-label="Ablauf">
+    <button type="button" data-ziel="s1"><span class="n">1</span><span class="lbl">Spiel</span></button>
+    <button type="button" data-ziel="s3"><span class="n">2</span><span class="lbl" id="fLblSr">Namen</span></button>
+    <button type="button" data-ziel="s4"><span class="n">3</span><span class="lbl">Quittung</span></button>
+    <button type="button" data-ziel="s5"><span class="n">4</span><span class="lbl">Abschluss</span></button>
+  </nav>
+
+  <section class="step" id="s1">
     <div class="head"><span class="k">1</span><h2>Spiel finden</h2></div>
     <div class="body">
       <div class="row">
@@ -320,7 +354,28 @@
       <p class="note" id="q4note">Je Schiedsrichter und Spiel eine Quittung — mit Lizenzstufe und Kilometern, damit der Betrag später nachvollziehbar ist. Unterschreiben lassen und mit der Abrechnung einreichen.</p>
       <div id="quittungen" style="display:flex;flex-direction:column;gap:.7rem"></div>
 
-      <div class="ref" id="erstattung">
+      <div class="actions">
+        <button type="button" id="weiter" class="printbtn ghost">Weiteres Spiel am selben Tag</button>
+        <button type="button" id="print" class="printbtn">Drucken / als PDF sichern</button>
+        <button type="button" id="copy" class="printbtn ghost">Text kopieren</button>
+        <a id="mail" class="printbtn" href="#" hidden>Unterschrieben einreichen</a>
+      </div>
+      <p class="note" id="copyOk" hidden>Kopiert — du kannst es jetzt in WhatsApp oder eine Mail einfügen.</p>
+      <p class="note" id="tabletNote"><strong>So läuft es am Tablet:</strong> Schiedsrichter unterschreibt direkt im Feld → „Drucken / als PDF sichern“ → „Unterschrieben einreichen“ öffnet die Mail, PDF anhängen und abschicken.</p>
+      <p class="note"><strong>Doppelansetzung:</strong> Pfeift jemand zwei Spiele hintereinander, „Weiteres Spiel am selben Tag“ tippen. Name, Lizenz und Adresse bleiben stehen, die Fahrtkosten setzt der Rechner beim zweiten Spiel automatisch auf null — am Ende kommen alle Quittungen in einem PDF.</p>
+    </div>
+  </section>
+
+  <section class="step" id="s5" hidden>
+    <div class="head"><span class="k">5</span><h2>Abschließen</h2></div>
+    <div class="body">
+      <p class="note" id="s5note">Beim Abschließen bekommt jedes Spiel eine Abrechnungsnummer, die Beträge werden festgeschrieben und der Vorgang landet in deiner Liste auf diesem Gerät. Unterschreiben und Drucken geht danach weiter.</p>
+      <div class="nurbildschirm">
+        <label for="zahlart">Wie wurde bezahlt?</label>
+        <select id="zahlart"></select>
+      </div>
+
+      <div class="ref nurbildschirm" id="erstattung">
         <h3 id="erstattungTitel">Erstattung an mich</h3>
         <p class="note" id="erstattungNote">Damit der USV das ausgelegte Geld zurücküberweisen kann. Steht nur auf deinem Ausdruck, nicht auf der Quittung des Schiedsrichters.</p>
         <div>
@@ -338,26 +393,6 @@
 
       <div class="beleg nurdruck" id="erstattungDruck"></div>
 
-      <div class="actions">
-        <button type="button" id="weiter" class="printbtn ghost">Weiteres Spiel am selben Tag</button>
-        <button type="button" id="print" class="printbtn">Drucken / als PDF sichern</button>
-        <button type="button" id="copy" class="printbtn ghost">Text kopieren</button>
-        <a id="mail" class="printbtn" href="#" hidden>Unterschrieben einreichen</a>
-      </div>
-      <p class="note" id="copyOk" hidden>Kopiert — du kannst es jetzt in WhatsApp oder eine Mail einfügen.</p>
-      <p class="note" id="tabletNote"><strong>So läuft es am Tablet:</strong> Schiedsrichter unterschreibt direkt im Feld → „Drucken / als PDF sichern“ → „Unterschrieben einreichen“ öffnet die Mail, PDF anhängen und abschicken.</p>
-      <p class="note"><strong>Doppelansetzung:</strong> Pfeift jemand zwei Spiele hintereinander, „Weiteres Spiel am selben Tag“ tippen. Name, Lizenz und Adresse bleiben stehen, die Fahrtkosten setzt der Rechner beim zweiten Spiel automatisch auf null — am Ende kommen alle Quittungen in einem PDF.</p>
-    </div>
-  </section>
-
-  <section class="step" id="s5" hidden>
-    <div class="head"><span class="k">5</span><h2>Abschließen</h2></div>
-    <div class="body">
-      <p class="note" id="s5note">Beim Abschließen bekommt jedes Spiel eine Abrechnungsnummer, die Beträge werden festgeschrieben und der Vorgang landet in deiner Liste auf diesem Gerät. Unterschreiben und Drucken geht danach weiter.</p>
-      <div>
-        <label for="zahlart">Wie wurde bezahlt?</label>
-        <select id="zahlart"></select>
-      </div>
       <div class="abschlussok" id="abschlussOk" hidden></div>
       <div class="actions">
         <button type="button" id="abschliessen" class="printbtn">Abrechnung abschließen</button>
@@ -856,6 +891,7 @@ function rechne() {
   letzteBelege = posten;
   quittungen();
   tagesliste();
+  fortschritt();
   erstattungRendern();
   mailLink();
   if (abgeschlossen) eingabenSperren(true);
@@ -889,6 +925,37 @@ function rechne() {
   split.innerHTML = (spiele > 1 ? `${spiele} Spiele<br>` : "") +
     `Gebühr ${eurCt(gebuehr)}<br>Fahrtkosten ${eurCt(fahrt)}<br>zusammen ${eurCt(gesamt)}`;
 }
+
+/* Der Stand ergibt sich aus dem, was tatsächlich ausgefüllt ist — nicht aus
+   einem Zähler, den man vorwärts klickt. */
+function fortschritt() {
+  const stand = {s1: "offen", s3: "offen", s4: "offen", s5: "offen"};
+  const namenDa = aktiv && letzteBelege.length && letzteBelege.every(x => x.name);
+  const unterschrieben = Object.keys(unterschriften).length > 0;
+  if (aktiv || gesammelt.length) stand.s1 = "fertig";
+  if (namenDa) stand.s3 = "fertig";
+  if (unterschrieben) stand.s4 = "fertig";
+  if (abgeschlossen) { stand.s5 = "fertig"; }
+  const aktuell = !stand.s1.startsWith("fertig") ? "s1"
+                : stand.s3 !== "fertig" ? "s3"
+                : stand.s4 !== "fertig" ? "s4" : "s5";
+  if (stand[aktuell] !== "fertig") stand[aktuell] = "aktuell";
+  document.querySelectorAll("#fortschritt button").forEach(b => {
+    const z = b.dataset.ziel;
+    b.dataset.stand = stand[z];
+    b.setAttribute("aria-current", stand[z] === "aktuell" ? "step" : "false");
+    b.querySelector(".n").textContent = stand[z] === "fertig" ? "✓" : b.querySelector(".n").dataset.nr;
+  });
+}
+
+document.querySelectorAll("#fortschritt button").forEach(b => {
+  b.querySelector(".n").dataset.nr = b.querySelector(".n").textContent;
+  b.addEventListener("click", () => {
+    const ziel = $(b.dataset.ziel);
+    if (!ziel || ziel.hidden) { $("s1").scrollIntoView({behavior: "smooth", block: "start"}); return; }
+    ziel.scrollIntoView({behavior: "smooth", block: "start"});
+  });
+});
 
 function tagesliste() {
   const box = $("tagesliste");
@@ -941,6 +1008,11 @@ function weiteresSpiel() {
 }
 
 const unterschriften = {};   // "<Spiel>_<SR>" -> dataURL, damit ein Neu-Rendern nichts loescht
+/* Die Quittungen werden bei jeder Eingabe neu berechnet. Sie deshalb auch neu
+   zu zeichnen, würde mitten in einer Unterschrift das Feld austauschen — der
+   Strich wäre weg. Also: während des Unterschreibens gar nicht rendern, sonst
+   nur, wenn sich am Inhalt wirklich etwas geändert hat. */
+let zeichnetAktiv = false, renderAusstehend = false, letzterRenderSchluessel = "";
 
 function signaturAktivieren() {
   document.querySelectorAll(".sigpad canvas").forEach(cv => {
@@ -951,23 +1023,49 @@ function signaturAktivieren() {
     if (unterschriften[k]) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0); img.src = unterschriften[k]; }
     let zeichnet = false;
     const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
-    cv.addEventListener("pointerdown", e => { zeichnet = true; cv.setPointerCapture(e.pointerId); const [x, y] = pos(e); ctx.beginPath(); ctx.moveTo(x, y); });
+    cv.addEventListener("pointerdown", e => {
+      zeichnet = true;
+      zeichnetAktiv = true;
+      $("total").classList.add("beiseite");
+      cv.setPointerCapture(e.pointerId);
+      const [x, y] = pos(e);
+      ctx.beginPath(); ctx.moveTo(x, y);
+    });
     cv.addEventListener("pointermove", e => { if (!zeichnet) return; e.preventDefault(); const [x, y] = pos(e); ctx.lineTo(x, y); ctx.stroke(); });
-    const ende = () => { if (!zeichnet) return; zeichnet = false; unterschriften[k] = cv.toDataURL(); };
+    const ende = () => {
+      $("total").classList.remove("beiseite");
+      zeichnetAktiv = false;
+      if (!zeichnet) return;
+      zeichnet = false;
+      unterschriften[k] = cv.toDataURL();
+      fortschritt();
+      if (renderAusstehend) { renderAusstehend = false; quittungen(); }
+    };
     cv.addEventListener("pointerup", ende); cv.addEventListener("pointerleave", ende);
   });
   document.querySelectorAll(".sigrow .clear").forEach(b => b.addEventListener("click", () => {
     const cv = $("sig" + b.dataset.sig);
     cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
     delete unterschriften[b.dataset.sig];
+    fortschritt();
   }));
 }
 
 function quittungen() {
   const box = $("quittungen"), s4 = $("s4"), g = gruppen();
-  if (!g.length) { s4.hidden = true; $("s5").hidden = true; box.innerHTML = ""; return; }
+  if (!g.length) {
+    s4.hidden = true; $("s5").hidden = true; box.innerHTML = "";
+    letzterRenderSchluessel = "";
+    return;
+  }
   s4.hidden = false;
   $("s5").hidden = false;
+  if (zeichnetAktiv) { renderAusstehend = true; return; }
+  const schluessel = JSON.stringify([rolle, g.map(gr => [gr.idx, abschlussIds[gr.idx] || "",
+    gr.spiel.datum, gr.spiel.zeit, gr.spiel.nr, gr.spiel.liga, gr.spiel.team, gr.spiel.gegner,
+    gr.spiel.halle, gr.posten])]);
+  if (schluessel === letzterRenderSchluessel) return;
+  letzterRenderSchluessel = schluessel;
   const mehrere = g.length > 1;
   box.innerHTML = g.map(gr => {
     const sp = gr.spiel;
@@ -1374,6 +1472,7 @@ function rolleAnzeigen() {
     ? "Spiel auswählen, eigene Lizenzstufe und Kilometer eintragen — fertig ist die Quittung zum Unterschreiben."
     : "Spiel auswählen, Lizenzstufen eintragen — du siehst sofort, wie viel Bargeld du mitnehmen musst.";
   $("countLabel").textContent = sr ? "Wie viele habt ihr das Spiel gepfiffen?" : "Wie viele Schiedsrichter sind angesetzt?";
+  $("fLblSr").textContent = sr ? "Ich" : "Namen";
   const b = $("count").children;
   b[0].textContent = sr ? "zu zweit" : "2 Schiedsrichter";
   b[1].textContent = sr ? "ich allein" : "nur einer";
@@ -1476,6 +1575,7 @@ $("vOk").addEventListener("click", () => {
 });
 
 rolleAnzeigen();
+fortschritt();
 $("foot").textContent = `Sätze nach ${TARIF_STAND}, Anlage 1 · Spielplan-Stand ` + ((DATEN && DATEN.stand) || "") +
   (DATEN && DATEN.korrigiert ? `, Einzelkorrekturen ${DATEN.korrigiert}` : "");
 monateFuellen();

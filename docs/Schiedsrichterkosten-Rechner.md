@@ -32,13 +32,13 @@ Eingabeblöcke — gerechnet wird für beide Rollen identisch.
 2. **Schiedsrichter erfassen** — Anzahl (zwei oder einer), je Person Name, Lizenzstufe, Anfahrt und
    Kilometer. Namen aus der lokalen Schiedsrichter-Liste füllen Lizenzstufe und PLZ automatisch.
 3. **Auszahlen und quittieren** — bar vor Spielbeginn, Quittung im Feld unterschreiben lassen.
-4. **Abschließen** — Zahlungsart wählen und festschreiben. Jedes Spiel bekommt eine
-   Abrechnungsnummer, die Beträge werden eingefroren, der Vorgang landet in der Liste auf dem
-   Gerät. Unterschreiben und Drucken gehen danach weiter, die Erfassung ist gesperrt.
+4. **Abschließen** — Zahlungsart wählen, für die Rückerstattung IBAN und Kontoinhaber eintragen,
+   dann festschreiben. Jedes Spiel bekommt eine Abrechnungsnummer, die Beträge werden eingefroren,
+   der Vorgang landet in der Liste auf dem Gerät. Unterschreiben und Drucken gehen danach weiter,
+   die Erfassung ist gesperrt. Die Kontodaten erscheinen ausschließlich auf dem eigenen Ausdruck,
+   nicht auf der Schiedsrichter-Quittung.
 5. **Einreichen** — „Drucken / als PDF sichern", dann „Unterschrieben einreichen" (öffnet eine Mail
-   an die im Datensatz hinterlegte Vereinsadresse). Für die Rückerstattung IBAN und Kontoinhaber
-   eintragen — beides erscheint ausschließlich auf dem eigenen Ausdruck, nicht auf der
-   Schiedsrichter-Quittung.
+   an die im Datensatz hinterlegte Vereinsadresse).
 
 ### Als Schiedsrichter
 
@@ -107,6 +107,24 @@ das Bargeld reicht. Auf der Quittung steht immer der centgenaue Betrag.
 
 Für Kombinationen ohne hinterlegten Satz (z. B. Oberliga Play-offs der Damen) zeigt der Rechner
 „Satz unbekannt — bitte beim Sportwart nachfragen", statt einen Wert zu erfinden.
+
+## Aufbau der Seite
+
+Die Seite ist **eine durchgehende Liste**, keine Abfolge von Fenstern: Schritt 1 Spiel finden,
+2 Spiel, 3 Schiedsrichter, 4 Quittung, 5 Abschließen. Alles bleibt gleichzeitig sichtbar und
+änderbar — wer nach dem Unterschreiben merkt, dass die Kilometer nicht stimmen, scrollt hoch und
+korrigiert, ohne einen Ablauf rückwärts zu durchlaufen.
+
+Damit der Stand trotzdem auf einen Blick erkennbar ist, steht unter der Kopfzeile eine
+**Fortschrittsleiste** mit vier Punkten: Spiel · Namen · Quittung · Abschluss. Sie zeigt an, was
+erledigt ist (Haken), woran gerade gearbeitet wird, und dient als Sprungmarke. Der Stand wird nicht
+weitergeklickt, sondern aus dem tatsächlichen Inhalt abgeleitet — ein Spiel ist gewählt, alle Namen
+stehen, es wurde unterschrieben, die Abrechnung ist festgeschrieben.
+
+Zwei Dinge, die bewusst nicht gemacht wurden: kein Fragebogen mit Weiter-Schaltflächen (jeder
+zusätzliche Tipp kostet am Spieltag Zeit, und Korrekturen werden mühsam) und keine Reiter (sie
+suggerieren gleichrangige, unabhängige Bereiche, obwohl hier eine Reihenfolge gilt, und verstecken
+gerade das, was man im Blick behalten will).
 
 ## Verlegte Spiele
 
@@ -294,6 +312,7 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
 | Datum | Änderung |
 |---|---|
 | 17.08.2026 | Erste Fassung: Spielsuche, Sätze, Kilometer, Quittung mit Unterschrift, Druck und Mail |
+| 23.08.2026 | Erstattungsangaben unter Schritt 5 verschoben; Fortschrittsleiste ergänzt; Quittungen werden während des Unterschreibens nicht mehr neu gezeichnet; Summenbalken tritt beim Unterschreiben zurück |
 | 23.08.2026 | Schiedsrichter-Liste nimmt aus TeamSL kopierte Trefferlisten an, mit Vorschau; Kontaktdaten und Lizenznummern werden verworfen, bekannte Namen aktualisiert |
 | 23.08.2026 | Offene Punkte als Issues #3 und #4 festgehalten |
 | 23.08.2026 | Vollständige Anschrift des Schiedsrichters auf der Quittung statt nur der Postleitzahl; Verlegungen im Rechner eintragbar; MDL-Spiel mU12 gegen ChemCats Chemnitz vom 27.09. auf den 03.10.2026 korrigiert |
