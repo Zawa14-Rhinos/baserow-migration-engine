@@ -163,6 +163,10 @@ sie zeigt nur an. Der Stand wird nicht
 weitergeklickt, sondern aus dem tatsächlichen Inhalt abgeleitet — ein Spiel ist gewählt, alle Namen
 stehen, es wurde unterschrieben, die Abrechnung ist festgeschrieben.
 
+Was am Bildschirm bewusst **nicht** erscheint: der Abrechnungsbogen. Er ist ein Papierdokument für
+die Geschäftsstelle und entsteht erst im Ausdruck — am Bildschirm wäre er eine Tabelle, die nur
+wiederholt, was ohnehin schon dasteht.
+
 Zwei Dinge, die bewusst nicht gemacht wurden: kein Fragebogen mit Weiter-Schaltflächen (jeder
 zusätzliche Tipp kostet am Spieltag Zeit, und Korrekturen werden mühsam) und keine Reiter (sie
 suggerieren gleichrangige, unabhängige Bereiche, obwohl hier eine Reihenfolge gilt, und verstecken
@@ -396,6 +400,7 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
   Zahlungsart, Kontoverbindung, Anlagenhinweis, Unterschriftsfeld und ein Kasten für die
   Geschäftsstelle. Nur in der Rolle „Ich zahle aus" — wer selbst pfeift, legt nichts aus.
 - Der Ausdruck nutzt jetzt die volle Seitenbreite statt der schmalen Bildschirmspalte.
+- Behoben, erst am gedruckten Bogen sichtbar: Die Abrechnungsnummer lief unter die Datumsspalte.
 
 ### Version 1.2.1 — 26.08.2026
 
