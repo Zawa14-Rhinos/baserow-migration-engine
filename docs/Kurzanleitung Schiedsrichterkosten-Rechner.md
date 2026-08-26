@@ -42,6 +42,11 @@ Unten steht, wie viel Bargeld du mitnehmen musst — aufgerundet auf volle 5 €
 6. **Sichern und einreichen.** „Drucken / als PDF sichern", dann „Unterschrieben einreichen" —
    das öffnet die Mail, PDF anhängen, abschicken.
 
+**Was im PDF steht:** vorn der Abrechnungsbogen für die Geschäftsstelle — alle Spiele des Tages in
+einer Tabelle, mit Summe, Kontoverbindung und Unterschriftsfeld —, dahinter die einzelnen
+Quittungen als Anlage. Von Hand nachzutragen ist nur Ort, Datum und deine Unterschrift. In der
+Sicht „Ich pfeife" gibt es den Bogen nicht; dort ist die Quittung der Beleg.
+
 ## Gut zu wissen
 
 **Zwei Spiele hintereinander?** „Weiteres Spiel am selben Tag" tippen. Name, Lizenz und Anschrift

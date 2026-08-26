@@ -26,6 +26,7 @@ NODE_PATH=$(npm root -g) node alle.mjs
 | `fortschritt-und-erstattung.mjs` | Fortschrittsleiste, Erstattungsblock unter Schritt 5, Druckbild |
 | `pruefung-beim-abschliessen.mjs` | Lückenliste, Rückfrage beim Abschließen, Kilometer-Beschriftung, Verbandslinks |
 | `freie-navigation.mjs` | alle Abschnitte von Anfang an erreichbar, Eingaben vor der Spielauswahl |
+| `abrechnungsbogen.mjs` | Deckblatt: nur im Druck, nur in der Trainer-Sicht, vor den Quittungen, Summe gegen die Belege gerechnet, Nummern nach dem Abschließen |
 
 **Beim Ändern beachten:** Ein Element, das außerhalb des sichtbaren Bereichs liegt, lässt sich nicht
 mit der Maus bedienen — vor Zeichengesten `scrollIntoView({block: 'center'})`. Und die Sichtbarkeit

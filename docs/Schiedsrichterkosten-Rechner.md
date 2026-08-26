@@ -307,9 +307,38 @@ Verlassen der Seite, wenn unterschrieben, aber noch nicht gedruckt wurde.
 einem Erstattungsblock mit IBAN und Gesamtbetrag. Suchfelder, Schaltflächen und Hinweistexte werden
 nicht mitgedruckt.
 
+Der Ausdruck hat zwei Teile: vorn den **Abrechnungsbogen** für die Geschäftsstelle, dahinter die
+Quittungen als Anlage.
+
 Jeder Beleg steht in einem eigenen Rahmen mit abgesetzter Kopfzeile und wird nicht über einen
 Seitenumbruch getrennt. Bei einer Doppelansetzung sind so zwei Quittungen auf einem Blatt
 sauber auseinanderzuhalten — und einzeln abzuheften.
+
+### Abrechnungsbogen
+
+Das Deckblatt fasst zusammen, was die Geschäftsstelle zum Buchen braucht, und ersetzt die
+handschriftliche Liste, die bisher vor die Quittungen geheftet wurde:
+
+| Block | Inhalt | Woher |
+|---|---|---|
+| Kopf | Verein, Mannschaft, Spieltag, Fassung der Gebührenordnung | Spielplan und `TARIF_STAND` |
+| Tabelle | je Spiel: Abrechnungsnummer, Datum, Spiel mit Spielklasse und Nummer, Schiedsrichter mit Lizenzstufe, Gebühr, Fahrtkosten, Betrag | dieselben Posten wie die Quittungen |
+| Summe | Gebühren, Fahrtkosten und Gesamtbetrag über alle Spiele des Tages | Summe der Belege |
+| Zahlweg | Zahlungsart, Kontoinhaber und IBAN | Schritt 5 |
+| Anlagen | Zahl der beigefügten Quittungen | gezählt |
+| Unterschrift | Ort, Datum, Unterschrift der auslegenden Person | von Hand |
+| Geschäftsstelle | sachlich richtig / rechnerisch richtig / gebucht am / Konto | von Hand |
+
+Der Bogen entsteht aus denselben Angaben wie die Quittungen; doppelt einzutragen ist nichts. Ist
+noch nicht abgeschlossen, steht in der Nummernspalte „noch offen" — der Bogen ist dann ein
+Entwurf, kein Beleg.
+
+**Nur in der Rolle „Ich zahle aus".** Wer selbst pfeift, legt nichts aus und reicht nichts ein;
+dort ist die Quittung der Beleg, und ein Bogen wäre ein zweites Blatt ohne Inhalt.
+
+**Noch nicht bestätigt:** Die Aufteilung ist aus dem abgeleitet, was eine Buchhaltung zum Buchen
+braucht — nicht aus einem Formular der Geschäftsstelle. Gibt es dort einen festen Vordruck, gehört
+der Bogen daran angeglichen; siehe „Offene Punkte".
 
 Wer das PDF braucht:
 
@@ -343,17 +372,30 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
    Wege sind verglichen und liegen dem Vorstand als Entscheidungsvorlage vor —
    [Issue #4](https://github.com/Zawa14-Rhinos/baserow-migration-engine/issues/4).
 
+5. **Abrechnungsbogen gegen den Vordruck der Geschäftsstelle prüfen.** Das Deckblatt ist nach
+   fachlichem Bedarf gebaut, nicht nach einem vorhandenen Formular. Falls die Geschäftsstelle einen
+   eigenen Vordruck führt, muss der Bogen Feld für Feld daran angepasst werden — sonst füllt die
+   Mannschaft am Ende zwei Blätter aus.
+
 **Weiterentwicklung:**
 
-5. **E-Mail-Adressen der Schiedsrichter aus TeamSL** — würde erlauben, die Quittung direkt an den
+6. **E-Mail-Adressen der Schiedsrichter aus TeamSL** — würde erlauben, die Quittung direkt an den
    Schiedsrichter zu schicken, statt sie ihm zu geben. Setzt einen Zugang und eine Klärung des
    Datenschutzes voraus.
-6. **Andere Landesverbände / Regionalliga Nord** — technisch nur eine Frage der Datenpflege: Sätze
+7. **Andere Landesverbände / Regionalliga Nord** — technisch nur eine Frage der Datenpflege: Sätze
    in die Tarifmatrix, Spiele in den Datensatz. Beides gehört dem jeweiligen Verband, nicht dem USV.
-7. **Andere Sportarten** — dieselbe Struktur (Spielplan + Satztabelle + Quittung) trägt auch dort;
+8. **Andere Sportarten** — dieselbe Struktur (Spielplan + Satztabelle + Quittung) trägt auch dort;
    auszutauschen sind nur Tarifmatrix und Spielplan.
 
 ## Änderungshistorie
+
+### Version 1.3 — 26.08.2026
+
+- **Abrechnungsbogen** als erste Seite des Ausdrucks: alle Spiele des Tages in einer Tabelle, mit
+  Abrechnungsnummer, Spiel, Schiedsrichtern, Gebühr, Fahrtkosten und Gesamtsumme, darunter
+  Zahlungsart, Kontoverbindung, Anlagenhinweis, Unterschriftsfeld und ein Kasten für die
+  Geschäftsstelle. Nur in der Rolle „Ich zahle aus" — wer selbst pfeift, legt nichts aus.
+- Der Ausdruck nutzt jetzt die volle Seitenbreite statt der schmalen Bildschirmspalte.
 
 ### Version 1.2.1 — 26.08.2026
 

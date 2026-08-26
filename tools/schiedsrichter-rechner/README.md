@@ -40,6 +40,7 @@ sehr guten Grund haben.
 | `rechne()` | einziger Rechenweg: Posten je Schiedsrichter, Summen, Anstoß für alles Weitere |
 | `gruppen()` | alle Quittungen des Tages: abgeschlossene Spiele plus das gerade bearbeitete |
 | `quittungen()` | rendert die Belege — **nicht** während des Unterschreibens und nur bei echter Inhaltsänderung |
+| `bogenRendern()` | Deckblatt für die Geschäftsstelle; nur in der Rolle „Ich zahle aus" und nur im Druck |
 | `luecken()` / `lueckenAnzeigen()` | Vollständigkeitsprüfung, die erst beim Abschließen greift |
 | `abschliessen()` | vergibt die Abrechnungsnummer, friert die Beträge ein, legt den Vorgang ab |
 | `fortschritt()` | leitet den Stand der vier Punkte aus dem tatsächlichen Inhalt ab |
@@ -57,6 +58,8 @@ sehr guten Grund haben.
   dauerhaft in den Spielplan schreiben.
 - **`[hidden]` braucht `display: none !important`**, weil Komponenten mit eigener `display`-Regel es
   sonst überstimmen.
+- **Der Ausdruck folgt der DOM-Reihenfolge.** Deshalb steht `#bogen` am Anfang von Schritt 4 und
+  nicht bei den übrigen Abschlussangaben in Schritt 5 — er muss vor den Quittungen liegen.
 - **Nichts blockiert die Erfassung.** Pflichtangaben werden über `luecken()` beim Abschließen
   eingefordert, nicht über Sperren unterwegs.
 
@@ -82,7 +85,8 @@ gehören durchgespielt:
 - beide Rollen, Berechnung mit unterschiedlichen Lizenzstufen und die Verdopplung bei nur einem
   Schiedsrichter (U11/U12 ausgenommen),
 - Tagesabrechnung mit zwei Spielen, inklusive Entfernen des mittleren,
-- Unterschreiben, Abschließen, Druckausgabe als PDF,
+- Unterschreiben, Abschließen, Druckausgabe als PDF — erste Seite Abrechnungsbogen, dahinter die
+  Quittungen; in der Schiedsrichter-Sicht ohne Bogen,
 - Verhalten ohne `localStorage`,
 - Ansicht auf 375 px Breite.
 
@@ -94,7 +98,7 @@ cd tools/schiedsrichter-rechner/tests
 NODE_PATH=$(npm root -g) node alle.mjs
 ```
 
-Derzeit acht Suiten mit 131 Prüfungen. Wer eine Funktion ergänzt, ergänzt dort die Fälle — mehrere
+Derzeit neun Suiten mit 157 Prüfungen. Wer eine Funktion ergänzt, ergänzt dort die Fälle — mehrere
 der heute gefundenen Fehler sind erst durch diese Tests aufgefallen.
 
 ## Spielplan aktualisieren
