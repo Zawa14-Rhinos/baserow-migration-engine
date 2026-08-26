@@ -190,12 +190,19 @@
   details.frei { border-top: 1px solid var(--line); padding-top: .7rem; }
   details.frei summary { cursor: pointer; font-size: .85rem; color: var(--accent); }
   details.frei .freibody { display: flex; flex-direction: column; gap: .7rem; padding-top: .7rem; }
-  .beleg { scroll-margin-bottom: 8rem; border: 1px solid var(--line); border-radius: 11px; padding: .85rem; background: var(--surface-2); font-size: .87rem; }
-  .beleg h4 { margin: 0 0 .5rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .beleg {
+    scroll-margin-bottom: 8rem; border: 2px solid var(--ink); border-radius: 4px;
+    padding: .9rem 1rem; background: var(--surface); font-size: .87rem;
+  }
+  .beleg h4 {
+    margin: -.9rem -1rem .7rem; padding: .5rem 1rem; font-size: .8rem;
+    text-transform: uppercase; letter-spacing: .08em; color: var(--ink);
+    border-bottom: 1px solid var(--ink); background: var(--surface-2);
+  }
   .beleg dl { display: grid; grid-template-columns: auto 1fr; gap: .25rem .8rem; margin: 0; }
   .beleg dt { color: var(--muted); }
   .beleg dd { margin: 0; text-align: right; }
-  .beleg .gesamt { border-top: 1px solid var(--line); margin-top: .55rem; padding-top: .5rem; display: flex; justify-content: space-between; font-weight: 700; }
+  .beleg .gesamt { border-top: 1.5px solid var(--ink); margin-top: .55rem; padding-top: .5rem; display: flex; justify-content: space-between; font-weight: 700; }
   .sigpad { margin-top: .9rem; }
   .sigpad canvas { width: 100%; height: 92px; border: 1px dashed var(--line); border-radius: 8px; background: var(--surface); touch-action: none; display: block; }
   .sigrow { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin-top: .3rem; font-size: .76rem; color: var(--muted); }
@@ -208,11 +215,16 @@
     #s4, #s5 { border: 0; box-shadow: none; }
     #s4 > .head { display: none; }
     #s5 .body { padding: 0; }
-    .beleg { background: #fff; border: 1px solid #999; page-break-inside: avoid; margin-bottom: .6rem; }
+    .beleg {
+      background: #fff; border: 1.2pt solid #000; border-radius: 0;
+      padding: 9pt 11pt; margin: 0 0 14pt; page-break-inside: avoid;
+    }
+    .beleg h4 { margin: -9pt -11pt 8pt; padding: 5pt 11pt; border-bottom: .6pt solid #000; background: none; color: #000; }
+    .beleg .gesamt { border-top: 1pt solid #000; }
     .beleg dt, .sigrow { color: #444; }
     .sigpad canvas { border: 1px solid #999; background: #fff; }
     .sigrow .clear { display: none; }
-    #erstattung, #tagesliste, #weiter { display: none !important; }
+    #erstattung, #tagesliste, #weiter, #luecken, #abschlussOk { display: none !important; }
     .nurdruck { display: block !important; }
     #erstattungDruck { background: #fff; border: 1px solid #999; page-break-inside: avoid; }
     #erstattungDruck.leer { display: none !important; }
@@ -497,7 +509,7 @@ const KM_SATZ_TEXT = "0,30 €";
 const TARIF_STAND = (DATEN && DATEN.tarifStand) || "BVSA-SRO 06/2026";
 /* Steht in der Fußzeile, damit bei einer Rückfrage klar ist, welche Fassung
    jemand vor sich hat — die Datei wird auch heruntergeladen weitergegeben. */
-const VERSION = "1.2";
+const VERSION = "1.2.1";
 const EINREICHEN_MAIL = (DATEN && DATEN.einreichenMail) || "";
 const WT = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 const eur = n => n.toLocaleString("de-DE", {style:"currency", currency:"EUR", minimumFractionDigits:2});

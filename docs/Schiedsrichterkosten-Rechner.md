@@ -307,6 +307,10 @@ Verlassen der Seite, wenn unterschrieben, aber noch nicht gedruckt wurde.
 einem Erstattungsblock mit IBAN und Gesamtbetrag. Suchfelder, Schaltflächen und Hinweistexte werden
 nicht mitgedruckt.
 
+Jeder Beleg steht in einem eigenen Rahmen mit abgesetzter Kopfzeile und wird nicht über einen
+Seitenumbruch getrennt. Bei einer Doppelansetzung sind so zwei Quittungen auf einem Blatt
+sauber auseinanderzuhalten — und einzeln abzuheften.
+
 Wer das PDF braucht:
 
 | Empfänger | Wofür | Stand |
@@ -350,6 +354,13 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
    auszutauschen sind nur Tarifmatrix und Spielplan.
 
 ## Änderungshistorie
+
+### Version 1.2.1 — 26.08.2026
+
+- Jede Quittung steht in einem eigenen Rahmen mit abgesetzter Kopfzeile — am Bildschirm wie im
+  Ausdruck. Bei mehreren Spielen ist damit auf einen Blick erkennbar, wo ein Beleg endet und der
+  nächste beginnt; im PDF wird ein Beleg nicht mehr über den Seitenumbruch zerrissen.
+- Behoben: Die Lückenliste („Zum Abschließen fehlt noch") wurde mitgedruckt.
 
 ### Version 1.2 — 23.08.2026
 
