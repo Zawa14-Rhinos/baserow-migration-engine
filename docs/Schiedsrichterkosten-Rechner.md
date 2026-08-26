@@ -372,7 +372,7 @@ Sammelüberweisung) ist noch nicht festgelegt — siehe „Offene Punkte".
    Wege sind verglichen und liegen dem Vorstand als Entscheidungsvorlage vor —
    [Issue #4](https://github.com/Zawa14-Rhinos/baserow-migration-engine/issues/4).
 
-5. **Abrechnungsbogen gegen den Vordruck der Geschäftsstelle prüfen.** Das Deckblatt ist nach
+5. **Abrechnungsbogen gegen den Vordruck der Geschäftsstelle prüfen** — [Issue #15](https://github.com/Zawa14-Rhinos/baserow-migration-engine/issues/15). Das Deckblatt ist nach
    fachlichem Bedarf gebaut, nicht nach einem vorhandenen Formular. Falls die Geschäftsstelle einen
    eigenen Vordruck führt, muss der Bogen Feld für Feld daran angepasst werden — sonst füllt die
    Mannschaft am Ende zwei Blätter aus.
