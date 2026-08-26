@@ -252,11 +252,14 @@
     .bogen th.num, .bogen td.num { text-align: right; white-space: nowrap; }
     /* Feste Spaltenbreiten: sonst zieht die laengste Ligabezeichnung die
        Tabelle schief und die Namen brechen um. */
-    .bogen th:nth-child(1) { width: 15%; }
-    .bogen th:nth-child(2) { width: 9%; }
-    .bogen th:nth-child(4) { width: 20%; }
-    .bogen th:nth-child(5), .bogen th:nth-child(6), .bogen th:nth-child(7) { width: 9%; }
-    .bogen td:nth-child(1) { word-break: break-all; }
+    .bogen th:nth-child(1) { width: 18%; }
+    .bogen th:nth-child(2) { width: 10%; }
+    .bogen th:nth-child(4) { width: 19%; }
+    .bogen th:nth-child(5), .bogen th:nth-child(6), .bogen th:nth-child(7) { width: 9.5%; }
+    /* Die Abrechnungsnummer bleibt auf einer Zeile -- umgebrochen ist sie beim
+       Nachschlagen nicht wiederzuerkennen. Dafuer eine Spur kleiner. */
+    .bogen th:nth-child(1), .bogen td:nth-child(1) { text-align: left; }
+    .bogen td:nth-child(1) { font-size: 7pt; white-space: nowrap; }
     .bogen .klein { font-size: 8pt; color: #444; }
     .bogen tr.summe td { border-top: 1pt solid #000; border-bottom: 0; font-weight: 700; padding-top: 5pt; }
     .bogen .zahlweg { margin-top: 9pt; display: flex; gap: 14pt; font-size: 9pt; }
